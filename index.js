@@ -1,3 +1,4 @@
+var crypto = require('crypto');
 var express = require('express');
 var app = express();
 
@@ -24,6 +25,12 @@ app.use(function(req, res, next) {
 });
 
 app.use(express.static('./static'));
+
+app.post('/register', function(req, res) {
+  crypto.randomBytes(32, function(ex, buf) {
+    res.send(buf.toString('hex'));
+  });
+});
 
 var port = process.env.PORT || 3003;
 var ready = new Promise(function(resolve, reject) {
