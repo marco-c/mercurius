@@ -21,8 +21,8 @@ navigator.serviceWorker.register('service-worker.js').then(function(registration
       key: key ? btoa(String.fromCharCode.apply(null, new Uint8Array(key))) : '',
     }),
   }).then(function(response) {
-    response.text().then(function(asd) {
-      window.alert(asd);
+    response.text().then(function(token) {
+      window.alert('Your token is: ' + token);
     });
   });
 });
