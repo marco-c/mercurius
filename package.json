@@ -1,0 +1,21 @@
+{
+  "name": "mercurius",
+  "version": "0.0.1",
+  "description": "Generic push server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "push"
+  ],
+  "contributors": [
+    {
+      "name": "Marco Castelluccio"
+    },
+    {
+      "name": "Piotr Zalewa"
+    }
+  ],
+  "license": "Apache-2.0"
+}
