@@ -1,6 +1,9 @@
 var crypto = require('crypto');
 var express = require('express');
+var bodyParser = require('body-parser');
 var app = express();
+
+app.use(bodyParser.json());
 
 app.use(function(req, res, next) {
   var host = req.get('Host');
@@ -26,9 +29,19 @@ app.use(function(req, res, next) {
 
 app.use(express.static('./static'));
 
+// Map tokens to endpoints
+var registrations = {};
+
 app.post('/register', function(req, res) {
   crypto.randomBytes(32, function(ex, buf) {
-    res.send(buf.toString('hex'));
+    var token = buf.toString('hex');
+
+    registrations[token] = {
+      endpoint: req.body.endpoint,
+      key: req.body.key,
+    };
+
+    res.send(token);
   });
 });
 
