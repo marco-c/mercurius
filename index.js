@@ -1,6 +1,7 @@
 var crypto = require('crypto');
 var express = require('express');
 var bodyParser = require('body-parser');
+var webPush = require('web-push');
 var app = express();
 
 app.use(bodyParser.json());
@@ -42,6 +43,11 @@ app.post('/register', function(req, res) {
 
     res.send(token);
   });
+});
+
+app.post('/notify', function(req, res) {
+  var registration = registrations[req.body.token];
+  webPush.sendNotification(registration.endpoint, req.body.ttl, registration.key, req.body.payload);
 });
 
 var port = process.env.PORT || 3003;
