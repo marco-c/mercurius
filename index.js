@@ -45,6 +45,20 @@ app.post('/register', function(req, res) {
   });
 });
 
+app.post('/updateRegistration', function(req, res) {
+  var token = req.body.token;
+  var registration = registrations[req.body.token];
+  if (!registration) {
+    res.sendStatus(404);
+    return;
+  }
+
+  registration[endpoint] = req.body.endpoint;
+  registration[key] = req.body.key;
+
+  res.sendStatus(200);
+});
+
 app.post('/notify', function(req, res) {
   var registration = registrations[req.body.token];
   if (!registration) {
