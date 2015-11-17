@@ -36,3 +36,8 @@ var ready = new Promise(function(resolve, reject) {
     resolve();
   });
 });
+
+module.exports = {
+  app: app,
+  ready: ready,
+};
