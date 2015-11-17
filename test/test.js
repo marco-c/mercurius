@@ -12,7 +12,7 @@ describe('mercurius', function() {
       .post('/register')
       .send({
         endpoint: 'endpoint',
-        key: 'key'
+        key: 'key',
       })
       .expect(function(res) {
         assert.equal(res.status, 200);
@@ -21,11 +21,22 @@ describe('mercurius', function() {
       .end(done);
   });
 
-  it('sends 404 when a registration doesn\'t exist', function(done) {
+  it('sends 404 on `notify` when a registration doesn\'t exist', function(done) {
     request(mercurius.app)
       .post('/notify')
       .send({
         token: 'token_inesistente',
+      })
+      .expect(404, done);
+  });
+
+  it('sends 404 on `updateRegistration` when a registration doesn\'t exist', function(done) {
+    request(mercurius.app)
+      .post('/updateRegistration')
+      .send({
+        token: 'token_inesistente',
+        endpoint: 'endpoint',
+        key: 'key',
       })
       .expect(404, done);
   });
