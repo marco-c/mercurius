@@ -23,6 +23,8 @@ app.use(function(req, res, next) {
   next();
 });
 
+app.use(express.static('./static'));
+
 var port = process.env.PORT || 3003;
 var ready = new Promise(function(resolve, reject) {
   app.listen(port, function(err) {
