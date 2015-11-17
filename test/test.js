@@ -20,4 +20,13 @@ describe('mercurius', function() {
       })
       .end(done);
   });
+
+  it('sends 404 when a registration doesn\'t exist', function(done) {
+    request(mercurius.app)
+      .post('/notify')
+      .send({
+        token: 'token_inesistente',
+      })
+      .expect(404, done);
+  });
 });
