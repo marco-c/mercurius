@@ -16,6 +16,13 @@ app.use(function(req, res, next) {
   return next();
 });
 
+app.use(function(req, res, next) {
+  // http://enable-cors.org/server_expressjs.html
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept');
+  next();
+});
+
 var port = process.env.PORT || 3003;
 var ready = new Promise(function(resolve, reject) {
   app.listen(port, function(err) {
