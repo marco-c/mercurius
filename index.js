@@ -47,6 +47,11 @@ app.post('/register', function(req, res) {
 
 app.post('/notify', function(req, res) {
   var registration = registrations[req.body.token];
+  if (!registration) {
+    res.sendStatus(404);
+    return;
+  }
+
   webPush.sendNotification(registration.endpoint, req.body.ttl, registration.key, req.body.payload);
 });
 
