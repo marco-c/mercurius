@@ -1,0 +1,2 @@
+# mercurius
+Generic push server
