@@ -57,7 +57,9 @@ var ready = new Promise(function(resolve, reject) {
       reject(err);
       return;
     }
-    console.log('app.listen on http://localhost:%d', port);
+
+    console.log('Mercurius listening on http://localhost:%d', port);
+
     resolve();
   });
 });
