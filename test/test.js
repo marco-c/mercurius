@@ -5,6 +5,7 @@ var nock = require('nock');
 
 describe('mercurius', function() {
   var token;
+  var tokenToUnregister;
 
   before(function(done) {
     mercurius.ready.then(function() {
@@ -31,8 +32,27 @@ describe('mercurius', function() {
       .expect(function(res) {
         assert.equal(res.status, 200);
         assert.equal(res.text.length, 64);
+        tokenToUnregister = res.text;
       })
       .end(done);
+  });
+
+  it('successfully unregisters users', function(done) {
+    request(mercurius.app)
+      .post('/unregister')
+      .send({
+        token: tokenToUnregister,
+      })
+      .expect(200, done);
+  });
+
+  it('replies with 404 when trying to unregister a non registered user', function(done) {
+    request(mercurius.app)
+      .post('/unregister')
+      .send({
+        token: tokenToUnregister,
+      })
+      .expect(404, done);
   });
 
   it('replies with 404 on `notify` when a registration doesn\'t exist', function(done) {
