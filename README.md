@@ -1,5 +1,5 @@
 # mercurius
-Generic push server
+Generic Web Push server
 
 [![Build Status](https://travis-ci.org/marco-c/mercurius.svg?branch=master)](https://travis-ci.org/marco-c/mercurius)
 [![dependencies](https://david-dm.org/marco-c/mercurius.svg)](https://david-dm.org/marco-c/mercurius)
