@@ -16,7 +16,7 @@ program.command('notify [mercuriusURL] [token] [payload]')
        .action(function(mercuriusURL, token, payload) {
   var payload = JSON.stringify({
     token: token,
-    payload: payload,
+    payload: JSON.parse(payload),
     ttl: 200,
   });
 

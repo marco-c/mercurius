@@ -78,7 +78,7 @@ app.post('/notify', function(req, res) {
     return;
   }
 
-  webPush.sendNotification(registration.endpoint, req.body.ttl, registration.key, req.body.payload)
+  webPush.sendNotification(registration.endpoint, req.body.ttl, registration.key, JSON.stringify(req.body.payload))
   .then(function() {
     res.sendStatus(200);
   }, function(err) {
