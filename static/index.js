@@ -37,3 +37,11 @@ function register() {
 }
 
 document.getElementById('register').onclick = register;
+
+window.onload = function() {
+  var token = localStorage.getItem('token');
+  if (token) {
+    document.getElementById('registrationForm').style.display = 'none';
+    document.getElementById('token').textContent = 'Your token is: ' + token;
+  }
+}
