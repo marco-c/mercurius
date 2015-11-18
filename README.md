@@ -18,3 +18,14 @@ The body of the request is a JSON object containing:
 The payload is a JSON object containing the parameters of the nofication to be shown to the user:
  - title: the title of the notification;
  - body: the body of the notification.
+
+Example:
+```
+{
+    "token": "aToken",
+    "payload": {
+        "title": "IRSSI",
+        "body": "a message"
+    }
+}
+```
