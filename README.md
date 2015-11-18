@@ -1,6 +1,8 @@
 # mercurius
 Generic push server
 
+[![Build Status](https://travis-ci.org/marco-c/mercurius.svg?branch=master)](https://travis-ci.org/marco-c/mercurius)
+
 ## API
 
 ### POST /notify
