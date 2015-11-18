@@ -84,7 +84,7 @@ app.post('/notify', function(req, res) {
   });
 });
 
-var port = process.env.PORT || 3003;
+var port = process.env.PORT || 4000;
 var ready = new Promise(function(resolve, reject) {
   app.listen(port, function(err) {
     if (err) {
