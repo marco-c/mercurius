@@ -11,7 +11,10 @@
     "url": "https://github.com/marco-c/mercurius/"
   },
   "keywords": [
-    "push"
+    "web-push",
+    "push",
+    "push notifications",
+    "notifications"
   ],
   "contributors": [
     {
