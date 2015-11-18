@@ -1,3 +1,5 @@
+#! /usr/bin/env node
+
 var crypto = require('crypto');
 var express = require('express');
 var bodyParser = require('body-parser');
