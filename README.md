@@ -4,7 +4,8 @@ Generic push server
 ## API
 
 ### POST /notify
-Send notification to a user.
+Send a notification to a user.
+
 The body of the request is a JSON object containing:
  - token;
  - payload;
