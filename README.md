@@ -2,6 +2,8 @@
 Generic push server
 
 [![Build Status](https://travis-ci.org/marco-c/mercurius.svg?branch=master)](https://travis-ci.org/marco-c/mercurius)
+[![dependencies](https://david-dm.org/marco-c/mercurius.svg)](https://david-dm.org/marco-c/mercurius)
+[![devdependencies](https://david-dm.org/marco-c/mercurius/dev-status.svg)](https://david-dm.org/marco-c/mercurius#info=devDependencies)
 
 ## API
 
