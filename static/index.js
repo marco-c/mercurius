@@ -1,6 +1,10 @@
 var registrationPromise = navigator.serviceWorker.register('service-worker.js');
 
 function register() {
+  if (localStorage.getItem('token')) {
+    return;
+  }
+
   registrationPromise.then(function(registration) {
     return registration.pushManager.getSubscription().then(function(subscription) {
       if (subscription) {
@@ -25,6 +29,7 @@ function register() {
       }),
     }).then(function(response) {
       response.text().then(function(token) {
+        localStorage.setItem('token', token);
         document.getElementById('token').textContent = 'Your token is: ' + token;
       });
     });
