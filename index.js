@@ -45,6 +45,16 @@ app.post('/register', function(req, res) {
   });
 });
 
+app.post('/unregister', function(req, res) {
+  if (!registrations[req.body.token]) {
+    res.sendStatus(404);
+    return;
+  }
+
+  delete registrations[req.body.token];
+  res.sendStatus(200);
+});
+
 app.post('/updateRegistration', function(req, res) {
   var token = req.body.token;
   var registration = registrations[req.body.token];
