@@ -6,16 +6,12 @@
   "scripts": {
     "test": "mocha"
   },
+  "bin": "./index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/marco-c/mercurius/"
   },
-  "keywords": [
-    "web-push",
-    "push",
-    "push notifications",
-    "notifications"
-  ],
+  "author": "Marco Castelluccio <mcastelluccio@mozilla.com>",
   "contributors": [
     {
       "name": "Marco Castelluccio"
@@ -23,6 +19,12 @@
     {
       "name": "Piotr Zalewa"
     }
+  ],
+  "keywords": [
+    "web-push",
+    "push",
+    "push notifications",
+    "notifications"
   ],
   "license": "Apache-2.0",
   "dependencies": {
