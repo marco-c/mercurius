@@ -31,7 +31,7 @@
     "index.js",
     "LICENSE",
     "README.md",
-    "static/"
+    "dist/"
   ],
   "dependencies": {
     "body-parser": "^1.14.1",
