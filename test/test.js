@@ -90,6 +90,28 @@ describe('mercurius', function() {
       .expect(200, done);
   });
 
+  it('updates the registration successfully on `updateRegistration`', function(done) {
+    nock('https://localhost:50007')
+    .post('/')
+    .reply(201);
+
+    request(mercurius.app)
+      .post('/updateRegistration')
+      .send({
+        token: token,
+        endpoint: 'https://localhost:50007',
+        key: 'newKey',
+      })
+      .expect(200, function() {
+        request(mercurius.app)
+          .post('/notify')
+          .send({
+            token: token,
+          })
+          .expect(200, done);
+      });
+  });
+
   it('replies with 404 on `updateRegistration` when a registration doesn\'t exist', function(done) {
     request(mercurius.app)
       .post('/updateRegistration')
