@@ -9,6 +9,6 @@ gulp.task('clean', function(done) {
 
 gulp.task('default', ['clean'], function() {
   return gulp
-    .src('static/*')
+    .src(['static/*', 'node_modules/localforage/dist/localforage.min.js'])
     .pipe(gulp.dest('dist'));
 });
