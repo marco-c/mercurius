@@ -36,6 +36,7 @@
   "dependencies": {
     "body-parser": "^1.14.1",
     "express": "^4.13.3",
+    "localforage": "^1.3.0",
     "web-push": "0.0.11"
   },
   "devDependencies": {
