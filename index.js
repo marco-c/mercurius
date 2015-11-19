@@ -65,8 +65,8 @@ app.post('/updateRegistration', function(req, res) {
     return;
   }
 
-  registration[endpoint] = req.body.endpoint;
-  registration[key] = req.body.key;
+  registrations[token].endpoint = req.body.endpoint;
+  registrations[token].key = req.body.key;
 
   res.sendStatus(200);
 });
