@@ -29,7 +29,7 @@ app.use(function(req, res, next) {
   next();
 });
 
-app.use(express.static('./static'));
+app.use(express.static('./dist'));
 
 // Map tokens to endpoints
 var registrations = {};
