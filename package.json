@@ -4,7 +4,8 @@
   "description": "Generic push server",
   "main": "index.js",
   "scripts": {
-    "test": "gulp && mocha"
+    "test": "gulp && mocha",
+    "start": "./index.js"
   },
   "bin": "./index.js",
   "repository": {
