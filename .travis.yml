@@ -1,4 +1,13 @@
 language: node_js
 node_js:
-  - '0.12'
-  - '4'
+- '0.12'
+- '4'
+deploy:
+  provider: heroku
+  api_key:
+    secure: CmO8HRC6YNMGdJxJhJNjlLy4Aze6tEYgSiRCI5m09E6UwEdS/h52ianyccm8iwYNckPPWKo7OyyDYP/G5MNWeeg6atZueKauBPI+iEvkfeHwPtmGObfHV6JZP7PYYk9Ff4/R2AFjOU68gOwTMQSQWhtvcjYwZPCGZGrU+25/VOYpWhnXPT1NaYv4qqZjBPaK52VSydquIIVPqW6MAZKKz6Kb2ztaRDwi2Lc2g1GLM8FkBjtpedtA9hcESP/56hP18Yg4TLUdMJZ3X2xIfMOUreLTkRKOzpLhSL0iY3fhuFMYoLiy5BkNM6DKCmyBCNYJ+nU3ZGn1/TIB+1iYQ4RGRT9SZIPaNuVTODuwwql+K1LgIqj4u3c2JEucT2ID7cIii83wiRBZroSuQitgo59UsSE/eH8hHst6x0Naq+NkmbeU655hXeAUpby5ba0gSEa5O1adXBKmQLZMEYSxZYvJbMKjMGhcYTtm0g/t2t9GDMcGP3IiRTYx6n48CZ405Yiah1fx6Yjrlcep5yOp8DbFFlr2lB4Znm25fDa2WWyZvE7uk8ga5uKJmLmU34ipC7QqIkrsSA1izWdbrlvei77/7k+nSzFkYL7IBT5kAYny8ntBd+8cWMP8ESFc4585rWClh8vy9prHJqVq5jM0nWqD3SgUO5Maw3kovEieEVU4C/U=
+  app: mozcurius
+  on:
+    repo: marco-c/mercurius
+    branch: master
+    node: '4'
