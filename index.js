@@ -1,5 +1,6 @@
 #! /usr/bin/env node
 
+var fs = require('fs');
 var crypto = require('crypto');
 var express = require('express');
 var bodyParser = require('body-parser');
@@ -29,6 +30,9 @@ app.use(function(req, res, next) {
   next();
 });
 
+if (!fs.existsSync('./dist')) {
+  throw new Error('Missing `dist` folder, execute `gulp` first.');
+}
 app.use(express.static('./dist'));
 
 // Map tokens to endpoints
