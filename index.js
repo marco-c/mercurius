@@ -31,7 +31,7 @@ app.use(function(req, res, next) {
 });
 
 if (!fs.existsSync('./dist')) {
-  throw new Error('Missing `dist` folder, execute `gulp` first.');
+  throw new Error('Missing `dist` folder, execute `npm run build` first.');
 }
 app.use(express.static('./dist'));
 
