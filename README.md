@@ -29,3 +29,8 @@ Example:
     }
 }
 ```
+
+## INSTALL
+
+Install Redis database and set `REDISCLOUD_URL` environment variable to its 
+host (`redis://localhost:6379`)

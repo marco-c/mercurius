@@ -12,3 +12,6 @@ deploy:
     repo: marco-c/mercurius
     branch: master
     node: '4'
+env:
+  REDISCLOUD_URL: redis://localhost:6379
+before_script: redis-server /etc/redis/redis.conf --port 6379

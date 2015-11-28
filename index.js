@@ -4,8 +4,12 @@ var fs = require('fs');
 var crypto = require('crypto');
 var express = require('express');
 var bodyParser = require('body-parser');
+var redis = require('redis');
 var webPush = require('web-push');
+
 var app = express();
+
+var client = redis.createClient(process.env.REDISCLOUD_URL, {no_ready_check: true});
 
 app.use(bodyParser.json());
 
@@ -35,58 +39,66 @@ if (!fs.existsSync('./dist')) {
 }
 app.use(express.static('./dist'));
 
-// Map tokens to endpoints
-var registrations = {};
-
 app.post('/register', function(req, res) {
   crypto.randomBytes(32, function(ex, buf) {
     var token = buf.toString('hex');
 
-    registrations[token] = {
+    // save token in database
+    client.hmset(token, {
       endpoint: req.body.endpoint,
       key: req.body.key,
-    };
-
-    res.send(token);
+    }, function() {
+      res.send(token);
+    });
   });
 });
 
 app.post('/unregister', function(req, res) {
-  if (!registrations[req.body.token]) {
-    res.sendStatus(404);
-    return;
-  }
-
-  delete registrations[req.body.token];
-  res.sendStatus(200);
+  var token = req.body.token;
+  client.exists(token, function(err, result) {
+    if (!result) {
+      res.sendStatus(404);
+      return;
+    }
+    client.del(token, function(err) {
+      res.sendStatus(200);
+    });
+  });
 });
 
 app.post('/updateRegistration', function(req, res) {
   var token = req.body.token;
-  var registration = registrations[req.body.token];
-  if (!registration) {
-    res.sendStatus(404);
-    return;
-  }
-
-  registrations[token].endpoint = req.body.endpoint;
-  registrations[token].key = req.body.key;
-
-  res.sendStatus(200);
+  client.exists(token, function(err, exists) {
+    if (!exists) {
+      res.sendStatus(404);
+      return;
+    }
+    client.hgetall(token, function(err, registration) {
+      client.hmset(token, {
+        "endpoint": req.body.endpoint,
+        "key": req.body.key
+      }, function() {
+        res.sendStatus(200);
+      });
+    });
+  });
 });
 
 app.post('/notify', function(req, res) {
-  var registration = registrations[req.body.token];
-  if (!registration) {
-    res.sendStatus(404);
-    return;
-  }
-
-  webPush.sendNotification(registration.endpoint, req.body.ttl, registration.key, JSON.stringify(req.body.payload))
-  .then(function() {
-    res.sendStatus(200);
-  }, function(err) {
-    res.sendStatus(500);
+  var token = req.body.token;
+  client.exists(token, function(err, exists) {
+    if (!exists) {
+      res.sendStatus(404);
+      return;
+    }
+    client.hgetall(token, function(err, registration) {
+      webPush.sendNotification(registration.endpoint, req.body.ttl, registration.key, JSON.stringify(req.body.payload))
+      .then(function() {
+        res.sendStatus(200);
+      }, function(err) {
+        res.sendStatus(500);
+      });
+    });
   });
 });
 
