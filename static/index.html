@@ -5,11 +5,23 @@
   <title>Mercurius</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="localforage.min.js"></script>
+  <link rel="stylesheet" href="normalize.css">
+  <link rel="stylesheet" href="index.css">
 </head>
 <body>
-<div id="registrationForm">Register for a token: <button id="register">Register</button></div>
-<div id="unregistrationForm">Unregister: <button id="unregister">Unregister</button></div>
-<p id="token"></p>
+  <div class="text-page">
+    <h1>Mercurius</h1>
+    <p>A generic web-push service - <a href="http://github.com/marco-c/mercurius/">github</a></p>
+    <div id="registrationForm">
+      <h2>Register for a token</h2> 
+      <button id="register">Register</button>
+    </div>
+    <div id="unregistrationForm">
+      <h2>You are now registered</h2> 
+      <button id="unregister">Unregister</button>
+      <p>Your token is: <span id="token"></p>
+    </div>
+  </div>
 
 <script src="./index.js"></script>
 </body>
