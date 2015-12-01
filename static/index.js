@@ -31,7 +31,7 @@ function register() {
       }).then(function(response) {
         response.text().then(function(token) {
           localforage.setItem('token', token);
-          document.getElementById('token').textContent = 'Your token is: ' + token;
+          document.getElementById('token').textContent = token;
           document.getElementById('registrationForm').style.display = 'none';
           document.getElementById('unregistrationForm').style.display = 'block';
         });
@@ -66,7 +66,7 @@ window.onload = function() {
   localforage.getItem('token').then(function(token) {
     if (token) {
       document.getElementById('registrationForm').style.display = 'none';
-      document.getElementById('token').textContent = 'Your token is: ' + token;
+      document.getElementById('token').textContent = token;
     } else {
       document.getElementById('unregistrationForm').style.display = 'none';
     }
