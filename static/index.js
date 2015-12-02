@@ -1,4 +1,5 @@
 var registrationPromise = navigator.serviceWorker.register('service-worker.js');
+var machineId;
 
 function register() {
   localforage.getItem('token').then(function(token) {
@@ -27,6 +28,7 @@ function register() {
         body: JSON.stringify({
           endpoint: subscription.endpoint,
           key: key ? btoa(String.fromCharCode.apply(null, new Uint8Array(key))) : '',
+          machineId: machineId
         }),
       }).then(function(response) {
         response.text().then(function(token) {
@@ -51,18 +53,35 @@ document.getElementById('unregister').onclick = function() {
       },
       body: JSON.stringify({
         token: token,
+        machineId: machineId
       }),
     }).then(function(response) {
       document.getElementById('registrationForm').style.display = 'block';
       document.getElementById('unregistrationForm').style.display = 'none';
       document.getElementById('token').textContent = '';
 
-      localforage.clear();
+      localforage.removeItem('token');
     });
   });
 };
 
+function makeId(length) {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for( var i=0; i < length; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    return text;
+}
+
 window.onload = function() {
+  localforage.getItem('machineId').then(function(id) {
+    if (id) {
+      machineId = id;
+    } else {
+      machineId = makeId(20);
+      localforage.setItem('machineId', machineId);
+    }
+  });
   localforage.getItem('token').then(function(token) {
     if (token) {
       document.getElementById('registrationForm').style.display = 'none';
