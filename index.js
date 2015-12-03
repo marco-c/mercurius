@@ -39,20 +39,45 @@ if (!fs.existsSync('./dist')) {
 }
 app.use(express.static('./dist'));
 
+// adds a new machine and adds to a token set
+// creates a new token set if needed
 app.post('/register', function(req, res) {
-  crypto.randomBytes(32, function(ex, buf) {
-    var token = buf.toString('hex');
-
-    // save token in database
-    client.hmset(token, {
-      endpoint: req.body.endpoint,
-      key: req.body.key,
-    }, function() {
-      res.send(token);
+  // add/update machine in database
+  var machineId = req.body.machineId;
+  client.hmset(machineId, {
+    endpoint: req.body.endpoint,
+    key: req.body.key,
+    name: req.body.name,
+    active: true
+  }, function() {
+    // check if token provided
+    new Promise(function(resolve, reject) {
+      if (req.body.token) {
+        // (adding a machine to existing token)
+        resolve(req.body.token);
+        return;
+      }
+      // creating a new token
+      crypto.randomBytes(32, function(ex, buf) {
+        resolve(buf.toString('hex'));
+      });
+    })
+    .then(function(token) {
+      // add to the token set only if not there already (multiple
+      // notifications!)
+      client.sismember(token, machineId, function(err, ismember) {
+        if (ismember) {
+          res.send(token);
+          return;
+        }
+        client.sadd(token, req.body.machineId);
+        res.send(token);
+      });
     });
   });
 });
 
+// remove entire token set and all its machines
 app.post('/unregister', function(req, res) {
   var token = req.body.token;
   client.exists(token, function(err, result) {
@@ -60,25 +85,99 @@ app.post('/unregister', function(req, res) {
       res.sendStatus(404);
       return;
     }
-    client.del(token, function(err) {
-      res.sendStatus(200);
+    client.smembers(token, function(err, machines) {
+      for (var index = 0; index < machines.length; index++) {
+        client.del(machines[index]);
+      }
+      client.del(token, function(err) {
+        res.sendStatus(200);
+      });
     });
   });
 });
 
+// remove machine hash and its id from token set
+app.post('/unregisterMachine', function(req, res) {
+  var token = req.body.token;
+  var machineId = req.body.machineId;
+  client.exists(token, function(err, result) {
+    if (!result) {
+      res.sendStatus(404);
+      return;
+    }
+    client.exists(machineId, function(err, result) {
+      if (!result) {
+        res.sendStatus(404);
+        return;
+      }
+      client.del(machineId, function(err) {
+        client.srem(token, machineId, function(err) {
+          res.sendStatus(200);
+        });
+      });
+    });
+  });
+});
+
+
+// used only if registration is expired
+// it's needed as happens on request from service worker which doesn't
+// have any meta data
 app.post('/updateRegistration', function(req, res) {
   var token = req.body.token;
+  var machineId = req.body.machineId;
   client.exists(token, function(err, exists) {
     if (!exists) {
       res.sendStatus(404);
       return;
     }
-    client.hgetall(token, function(err, registration) {
-      client.hmset(token, {
-        "endpoint": req.body.endpoint,
-        "key": req.body.key
-      }, function() {
-        res.sendStatus(200);
+    client.sismember(token, machineId, function(err, ismember) {
+      if (!ismember) {
+        res.sendStatus(404);
+        return;
+      }
+      client.exists(machineId, function(err, exists) {
+        if (!exists) {
+          res.sendStatus(404);
+          return;
+        }
+        client.hmset(machineId, {
+          "endpoint": req.body.endpoint,
+          "key": req.body.key
+        }, function() {
+          res.sendStatus(200);
+        });
+      });
+    });
+  });
+});
+
+// used only if metadata updated
+// this happens on request to update meta data from front-end site
+app.post('/updateMeta', function(req, res) {
+  var token = req.body.token;
+  var machineId = req.body.machineId;
+  client.exists(token, function(err, exists) {
+    if (!exists) {
+      res.sendStatus(404);
+      return;
+    }
+    client.sismember(token, machineId, function(err, ismember) {
+      if (!ismember) {
+        res.sendStatus(404);
+        return;
+      }
+      client.exists(machineId, function(err, exists) {
+        if (!exists) {
+          res.sendStatus(404);
+          return;
+        }
+        client.hmset(machineId, {
+          "name": req.body.name,
+          "active": req.body.active
+        }, function() {
+          res.sendStatus(200);
+        });
       });
     });
   });
@@ -91,15 +190,28 @@ app.post('/notify', function(req, res) {
       res.sendStatus(404);
       return;
     }
-    client.hgetall(token, function(err, registration) {
-      webPush.sendNotification(registration.endpoint, req.body.ttl, registration.key, JSON.stringify(req.body.payload))
-      .then(function() {
-        res.sendStatus(200);
-      }, function(err) {
-        res.sendStatus(500);
-      });
+    client.smembers(token, function(err, machines) {
+      // send notification to all machines assigned to `token`
+      for (var index = 0; index < machines.length; index++) {
+        client.hgetall(machines[index], sendNotification);
+      }
     });
   });
+
+  function sendNotification(err, registration) {
+    webPush.sendNotification(
+        registration.endpoint,
+        req.body.ttl,
+        registration.key,
+        JSON.stringify(req.body.payload)
+    ).then(function() {
+      // XXX: this should happen after collecting data from all
+      // notification attempts
+      res.sendStatus(200);
+    }, function(err) {
+      res.sendStatus(500);
+    });
+  }
 });
 
 var port = process.env.PORT || 4000;
