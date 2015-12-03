@@ -102,6 +102,10 @@ app.post('/notify', function(req, res) {
   });
 });
 
+if (!process.env.GCM_API_KEY) {
+  console.warn('Set the GCM_API_KEY environment variable to support GCM');
+}
+
 webPush.setGCMAPIKey(process.env.GCM_API_KEY);
 
 var port = process.env.PORT || 4000;
