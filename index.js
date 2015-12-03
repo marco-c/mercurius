@@ -102,6 +102,8 @@ app.post('/notify', function(req, res) {
   });
 });
 
+webPush.setGCMAPIKey(process.env.GCM_API_KEY);
+
 var port = process.env.PORT || 4000;
 var ready = new Promise(function(resolve, reject) {
   app.listen(port, function(err) {
