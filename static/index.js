@@ -1,6 +1,12 @@
 var registrationPromise = navigator.serviceWorker.register('service-worker.js');
 var machineId;
 
+document.getElementById('hideTokenInput').onclick = function() {
+  document.getElementById('tokenInput').style.display = 'none';
+  document.getElementById('tokenLabel').style.display = 'none';
+  this.style.display = 'none';
+}
+
 function register() {
   localforage.getItem('token').then(function(token) {
     if (token) {
@@ -28,14 +34,14 @@ function register() {
         body: JSON.stringify({
           endpoint: subscription.endpoint,
           key: key ? btoa(String.fromCharCode.apply(null, new Uint8Array(key))) : '',
-          machineId: machineId
+          machineId: machineId,
+          token: document.getElementById('tokenInput').value
         }),
       }).then(function(response) {
         response.text().then(function(token) {
           localforage.setItem('token', token);
           document.getElementById('token').textContent = token;
-          document.getElementById('registrationForm').style.display = 'none';
-          document.getElementById('unregistrationForm').style.display = 'block';
+          showSection('unregistrationForm');
         });
       });
     });
@@ -43,6 +49,17 @@ function register() {
 }
 
 document.getElementById('register').onclick = register;
+
+var sections = ['registrationForm', 'unregistrationForm'];
+function showSection(section) {
+  for (var index = 0; index < sections.length; index++) {
+    if (sections[index] === section) {
+      document.getElementById(section).style.display = 'block';
+    } else {
+      document.getElementById(sections[index]).style.display = 'none';
+    }
+  }
+}
 
 document.getElementById('unregister').onclick = function() {
   localforage.getItem('token').then(function(token) {
@@ -56,10 +73,8 @@ document.getElementById('unregister').onclick = function() {
         machineId: machineId
       }),
     }).then(function(response) {
-      document.getElementById('registrationForm').style.display = 'block';
-      document.getElementById('unregistrationForm').style.display = 'none';
       document.getElementById('token').textContent = '';
-
+      showSection('registrationForm');
       localforage.removeItem('token');
     });
   });
@@ -84,10 +99,11 @@ window.onload = function() {
   });
   localforage.getItem('token').then(function(token) {
     if (token) {
-      document.getElementById('registrationForm').style.display = 'none';
+      showSection(null);
+      showSection('unregistrationForm');
       document.getElementById('token').textContent = token;
     } else {
-      document.getElementById('unregistrationForm').style.display = 'none';
+      showSection('registrationForm');
     }
   });
 }
