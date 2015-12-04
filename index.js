@@ -357,7 +357,7 @@ app.post('/notify', function(req, res) {
     .then(function(machines) {
       // send notification to all machines assigned to `token`
       if (!machines) {
-        // XXX: Are we being too agressive here?
+        // XXX: Are we being too aggressive here?
         return redisDel(token)
         .then(() => { throw new Error('Broken token.'); });
       }
