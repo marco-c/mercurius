@@ -13,24 +13,30 @@ self.addEventListener('push', function(event) {
 
 self.addEventListener('pushsubscriptionchange', function(event) {
   event.waitUntil(
-    localforage.getItem('token').then(function(token) {
+    localforage.getItem('token')
+    .then(function(token) {
       if (!token) {
         return;
       }
 
-      return self.registration.pushManager.subscribe({ userVisibleOnly: true }).then(function(subscription) {
-        var key = subscription.getKey ? subscription.getKey('p256dh') : '';
+      localforage.getItem('machineId')
+      .then(function(machineId) {
+        return self.registration.pushManager.subscribe({ userVisibleOnly: true })
+        .then(function(subscription) {
+          var key = subscription.getKey ? subscription.getKey('p256dh') : '';
 
-        return fetch('./updateRegistration', {
-          method: 'post',
-          headers: {
-            'Content-type': 'application/json'
-          },
-          body: JSON.stringify({
-            token: token,
-            endpoint: subscription.endpoint,
-            key: key ? btoa(String.fromCharCode.apply(null, new Uint8Array(key))) : '',
-          }),
+          return fetch('./updateRegistration', {
+            method: 'post',
+            headers: {
+              'Content-type': 'application/json'
+            },
+            body: JSON.stringify({
+              token: token,
+              machineId: machineId,
+              endpoint: subscription.endpoint,
+              key: key ? btoa(String.fromCharCode.apply(null, new Uint8Array(key))) : '',
+            }),
+          });
         });
       });
     })

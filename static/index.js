@@ -1,4 +1,23 @@
 var registrationPromise = navigator.serviceWorker.register('service-worker.js');
+var machineId;
+
+// all static DOM elements
+var domShowTokenInput = document.getElementById('showTokenInput');
+var domTokenInput = document.getElementById('tokenInput');
+var domTokenLabel = document.getElementById('tokenLabel');
+var domMachineName = document.getElementById('machineName');
+var domToken = document.getElementById('token');
+var domRegister = document.getElementById('register');
+var domUnregister = document.getElementById('unregister');
+var domMachines = document.getElementById('machines');
+
+domShowTokenInput.onclick = function() {
+  domTokenInput.style.display = 'block';
+  domTokenLabel.style.display = 'block';
+  this.style.display = 'none';
+};
+
+domMachineName.placeholder = window.navigator.userAgent;
 
 function register() {
   localforage.getItem('token').then(function(token) {
@@ -18,7 +37,6 @@ function register() {
       });
     }).then(function(subscription) {
       var key = subscription.getKey ? subscription.getKey('p256dh') : '';
-
       fetch('./register', {
         method: 'post',
         headers: {
@@ -27,48 +45,80 @@ function register() {
         body: JSON.stringify({
           endpoint: subscription.endpoint,
           key: key ? btoa(String.fromCharCode.apply(null, new Uint8Array(key))) : '',
+          machineId: machineId,
+          token: domTokenInput.value,
+          name: domMachineName.value
         }),
       }).then(function(response) {
         response.text().then(function(token) {
-          localforage.setItem('token', token);
-          document.getElementById('token').textContent = token;
-          document.getElementById('registrationForm').style.display = 'none';
-          document.getElementById('unregistrationForm').style.display = 'block';
+          if (response.ok) {
+            localforage.setItem('token', token);
+            domToken.textContent = token;
+            showSection('unregistrationForm');
+          } else {
+            alert('Error: ' + token);
+          }
         });
       });
     });
   });
 }
 
-document.getElementById('register').onclick = register;
+domRegister.onclick = register;
 
-document.getElementById('unregister').onclick = function() {
+var sections = ['registrationForm', 'unregistrationForm'];
+function showSection(section) {
+  for (var index = 0; index < sections.length; index++) {
+    if (sections[index] === section) {
+      document.getElementById(section).style.display = 'block';
+    } else {
+      document.getElementById(sections[index]).style.display = 'none';
+    }
+  }
+}
+
+domUnregister.onclick = function() {
   localforage.getItem('token').then(function(token) {
-    fetch('./unregister', {
+    fetch('./unregisterMachine', {
       method: 'post',
       headers: {
         'Content-type': 'application/json'
       },
       body: JSON.stringify({
         token: token,
+        machineId: machineId
       }),
     }).then(function(response) {
-      document.getElementById('registrationForm').style.display = 'block';
-      document.getElementById('unregistrationForm').style.display = 'none';
-      document.getElementById('token').textContent = '';
-
-      localforage.clear();
+      domToken.textContent = '';
+      showSection('registrationForm');
+      localforage.removeItem('token');
     });
   });
 };
 
+// generate a random string (default: 40)
+function makeId(length) {
+  var arr = new Uint8Array((length || 40) / 2);
+  window.crypto.getRandomValues(arr);
+  return [].map.call(arr, function(n) { return n.toString(16); }).join("");
+}
+
 window.onload = function() {
-  localforage.getItem('token').then(function(token) {
-    if (token) {
-      document.getElementById('registrationForm').style.display = 'none';
-      document.getElementById('token').textContent = token;
+  localforage.getItem('machineId').then(function(id) {
+    if (id) {
+      machineId = id;
     } else {
-      document.getElementById('unregistrationForm').style.display = 'none';
+      machineId = makeId(20);
+      localforage.setItem('machineId', machineId);
     }
   });
-}
+  localforage.getItem('token').then(function(token) {
+    if (token) {
+      showSection(null);
+      showSection('unregistrationForm');
+      domToken.textContent = token;
+    } else {
+      showSection('registrationForm');
+    }
+  });
+};

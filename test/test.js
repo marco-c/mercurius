@@ -17,6 +17,7 @@ describe('mercurius', function() {
       request(mercurius.app)
         .post('/register')
         .send({
+          machineId: 'machineX',
           endpoint: 'https://localhost:50005',
           key: 'key',
         })
@@ -31,6 +32,7 @@ describe('mercurius', function() {
     request(mercurius.app)
       .post('/register')
       .send({
+        machineId: 'machine',
         endpoint: 'endpoint',
         key: 'key',
       })
@@ -40,6 +42,86 @@ describe('mercurius', function() {
         tokenToUnregister = res.text;
       })
       .end(done);
+  });
+
+  it('successfully registers additional machine', function(done) {
+    request(mercurius.app)
+      .post('/register')
+      .send({
+        token: tokenToUnregister,
+        machineId: 'machine2',
+        endpoint: 'endpoint',
+        key: 'key',
+      })
+      .expect(function(res) {
+        assert.equal(res.status, 200);
+        assert.equal(res.text, tokenToUnregister);
+      })
+      .end(done);
+  });
+
+  it('successfully registers a machine even if it exists', function(done) {
+    client.smembers(tokenToUnregister, function(err, machines) {
+      var startLength = machines.length;
+      request(mercurius.app)
+        .post('/register')
+        .send({
+          token: tokenToUnregister,
+          machineId: 'machine2',
+          endpoint: 'endpoint',
+          key: 'key',
+        })
+        .expect(function(res) {
+          assert.equal(res.status, 200);
+          assert.equal(res.text, tokenToUnregister);
+          client.smembers(tokenToUnregister, function(err, newmachines) {
+            assert.equal(newmachines.length, startlength);
+          });
+        })
+        .end(done);
+    });
+  });
+
+  it('returns 404 if bad token provided', function(done) {
+    request(mercurius.app)
+      .post('/register')
+      .send({
+        token: 'notexisting',
+        machineId: 'machine of a not existing token',
+        endpoint: 'endpoint',
+        key: 'key',
+      })
+      .expect(404, done);
+  });
+
+  it('successfully unregisters machines', function(done) {
+    request(mercurius.app)
+      .post('/unregisterMachine')
+      .send({
+        token: tokenToUnregister,
+        machineId: 'machine',
+      })
+      .expect(200, done);
+  });
+
+  it('replies with 404 when trying to unregister a non existing token', function(done) {
+    request(mercurius.app)
+      .post('/unregisterMachine')
+      .send({
+        token: 'nonexistingtoken',
+        machineId: 'machine',
+      })
+      .expect(404, done);
+  });
+
+  it('replies with 404 when trying to unregister a non registered machine', function(done) {
+    request(mercurius.app)
+      .post('/unregisterMachine')
+      .send({
+        token: tokenToUnregister,
+        machineId: 'non-existing-machine',
+      })
+      .expect(404, done);
   });
 
   it('successfully unregisters users', function(done) {
@@ -104,6 +186,7 @@ describe('mercurius', function() {
       .post('/updateRegistration')
       .send({
         token: token,
+        machineId: 'machineX',
         endpoint: 'https://localhost:50007',
         key: 'newKey',
       })
@@ -122,9 +205,47 @@ describe('mercurius', function() {
       .post('/updateRegistration')
       .send({
         token: 'token_inesistente',
+        machineId: 'machineX',
         endpoint: 'endpoint',
         key: 'key',
       })
       .expect(404, done);
+  });
+
+  it('updates the metadata successfully on `updateMeta`', function(done) {
+    nock('https://localhost:50007')
+    .post('/')
+    .reply(201);
+
+    request(mercurius.app)
+      .post('/updateMeta')
+      .send({
+        token: token,
+        machineId: 'machineX',
+        name: 'newName',
+        active: false,
+      })
+      .expect(200, function() {
+        request(mercurius.app)
+          .post('/notify')
+          .send({
+            token: token,
+          })
+          .expect(200, done);
+      });
+  });
+
+  it('replies with 404 on `updateRegistration` when a registration doesn\'t exist', function(done) {
+    client.sadd(token, 'nonexistingmachine', function() {
+      request(mercurius.app)
+        .post('/updateRegistration')
+        .send({
+          token: token,
+          machineId: 'nonexistingmachine',
+          endpoint: 'endpoint',
+          key: 'key',
+        })
+        .expect(404, done);
+    });
   });
 });

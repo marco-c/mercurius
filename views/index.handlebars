@@ -1,0 +1,22 @@
+<div class="text-page">
+  <h1>Mercurius</h1>
+  <p>A generic web-push service - <a href="http://github.com/marco-c/mercurius/">github</a></p>
+  <div id="registrationForm">
+    <h2>Register machine.</h2> 
+    <label for="tokenInput" id="tokenLabel">Provide your token: </label>
+    <input type="text" id="tokenInput" placeholder="ddskljhlewiue98323opjwhealkdjhcdp03e">
+    <p id="showTokenInput"><a href="#">I've got a token<a></p>
+    <label for="machineName">Name your device:</label>
+    <input type="text" id="machineName" autofocus>
+    <button id="register">Register</button>
+  </div>
+  <div id="unregistrationForm">
+    <h2>You are now registered</h2> 
+    <button id="unregister">Unregister</button>
+    <p>Your token is: <span id="token"></p>
+    <ul id="machines"></ul>
+  </div>
+</div>
+
+<script src="localforage.min.js"></script>
+<script src="./index.js"></script>
