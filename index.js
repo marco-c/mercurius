@@ -26,6 +26,18 @@ function redisDel(hash) {
   });
 }
 
+function redisExists(hash) {
+  return new Promise(function(resolve, reject) {
+    client.exists(hash, function(err, result) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+}
+
 app.use(bodyParser.json());
 
 app.use(function(req, res, next) {
@@ -68,12 +80,14 @@ app.post('/register', function(req, res) {
     if (!req.body.token) {
       return resolve();
     }
-    client.exists(req.body.token, function(err, result) {
-      if (!result || err) {
-        return reject();
+
+    redisExists(req.body.token).then(function(result) {
+      if (!result) {
+        reject();
+      } else {
+        resolve();
       }
-      resolve();
-    });
+    }, reject);
   }).then(function() {
     client.hmset(machineId, {
       endpoint: req.body.endpoint,
@@ -115,7 +129,9 @@ app.post('/register', function(req, res) {
 // remove entire token set and all its machines
 app.post('/unregister', function(req, res) {
   var token = req.body.token;
-  client.exists(token, function(err, result) {
+
+  redisExists(token)
+  .then(function(result) {
     if (!result) {
       res.sendStatus(404);
       return;
@@ -134,6 +150,10 @@ app.post('/unregister', function(req, res) {
         res.sendStatus(500);
       });
     });
+  })
+  .catch(function(err) {
+    console.error(err);
+    res.sendStatus(500);
   });
 });
 
@@ -141,29 +161,34 @@ app.post('/unregister', function(req, res) {
 app.post('/unregisterMachine', function(req, res) {
   var token = req.body.token;
   var machineId = req.body.machineId;
+
   console.log('Unregistering machine: ' + machineId);
-  client.exists(token, function(err, result) {
+
+  redisExists(token)
+  .then(function(result) {
     if (!result) {
       res.sendStatus(404);
       return;
     }
 
-    client.exists(machineId, function(err, result) {
+    return redisExists(machineId)
+    .then(function(result) {
       if (!result) {
         res.sendStatus(404);
         return;
       }
 
-      redisDel(machineId)
+      return redisDel(machineId)
       .then(function() {
         client.srem(token, machineId, function(err) {
           res.sendStatus(200);
         });
-      }, function(err) {
-        console.error(err);
-        res.sendStatus(500);
       });
     });
+  })
+  .catch(function(err) {
+    console.error(err);
+    res.sendStatus(500);
   });
 });
 
@@ -174,22 +199,30 @@ app.post('/unregisterMachine', function(req, res) {
 app.post('/updateRegistration', function(req, res) {
   var token = req.body.token;
   var machineId = req.body.machineId;
+
   client.sismember(token, machineId, function(err, ismember) {
     if (!ismember) {
       res.sendStatus(404);
       return;
     }
-    client.exists(machineId, function(err, exists) {
+
+    redisExists(machineId)
+    .then(function(exists) {
       if (!exists) {
         res.sendStatus(404);
         return;
       }
+
       client.hmset(machineId, {
         "endpoint": req.body.endpoint,
         "key": req.body.key
       }, function() {
         res.sendStatus(200);
       });
+    })
+    .catch(function(err) {
+      console.error(err);
+      res.sendStatus(500);
     });
   });
 });
@@ -199,51 +232,72 @@ app.post('/updateRegistration', function(req, res) {
 app.post('/updateMeta', function(req, res) {
   var token = req.body.token;
   var machineId = req.body.machineId;
-  client.exists(token, function(err, exists) {
+
+  redisExists(token)
+  .then(function(exists) {
     if (!exists) {
       res.sendStatus(404);
       return;
     }
+
     client.sismember(token, machineId, function(err, ismember) {
       if (!ismember) {
         res.sendStatus(404);
         return;
       }
-      client.exists(machineId, function(err, exists) {
+
+      redisExists(machineId)
+      .then(function(exists) {
         if (!exists) {
           res.sendStatus(404);
           return;
         }
+
         client.hmset(machineId, {
           "name": req.body.name,
           "active": req.body.active
         }, function() {
           res.sendStatus(200);
         });
+      })
+      .catch(function(err) {
+        console.error(err);
+        res.sendStatus(500);
       });
     });
+  })
+  .catch(function(err) {
+    console.error(err);
+    res.sendStatus(500);
   });
 });
 
 app.post('/notify', function(req, res) {
   var token = req.body.token;
-  client.exists(token, function(err, exists) {
+
+  redisExists(token)
+  .then(function(exists) {
     if (!exists) {
       res.sendStatus(404);
       return;
     }
+
     client.smembers(token, function(err, machines) {
       // send notification to all machines assigned to `token`
-      var promises = [];
-      for (var index = 0; index < machines.length; index++) {
-        promises.push(sendNotificationPromise(machines[index], req));
-      }
+      var promises = machines.map(function(machine) {
+        return sendNotificationPromise(machine, req);
+      });
+
       Promise.all(promises).then(function(status) {
         res.sendStatus(status);
       }, function() {
         res.sendStatus(500);
       });
     });
+  })
+  .catch(function(err) {
+    console.error(err);
+    res.sendStatus(500);
   });
 });
 
