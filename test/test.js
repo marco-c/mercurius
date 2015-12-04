@@ -60,6 +60,17 @@ describe('mercurius', function() {
       .end(done);
   });
 
+  it('returns 404 if bad token provided', function(done) {
+    request(mercurius.app)
+      .post('/register')
+      .send({
+        token: 'notexisting',
+        machineId: 'machine of a not existing token',
+        endpoint: 'endpoint',
+        key: 'key',
+      })
+      .expect(404, done);
+  });
 
   it('successfully unregisters machines', function(done) {
     request(mercurius.app)
@@ -190,5 +201,4 @@ describe('mercurius', function() {
           .expect(200, done);
       });
   });
-
 });

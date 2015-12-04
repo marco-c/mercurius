@@ -52,37 +52,52 @@ app.get('/', function(req, res) {
 app.post('/register', function(req, res) {
   // add/update machine in database
   var machineId = req.body.machineId;
-  console.log(req.body.name);
-  client.hmset(machineId, {
-    endpoint: req.body.endpoint,
-    key: req.body.key,
-    name: req.body.name,
-    active: true
-  }, function() {
-    // check if token provided
-    new Promise(function(resolve, reject) {
-      if (req.body.token) {
-        // (adding a machine to existing token)
-        resolve(req.body.token);
-        return;
+  console.log('DEBUG: token: ' + req.body.token + ', machineId: ' + machineId + ', machineName: ' + req.body.name);
+  new Promise(function(allfine, reject) {
+    if (!req.body.token) {
+      return allfine();
+    }
+    client.exists(req.body.token, function(err, result) {
+      if (!result || err) {
+        return reject();
       }
-      // creating a new token
-      crypto.randomBytes(32, function(ex, buf) {
-        resolve(buf.toString('hex'));
-      });
+      allfine();
     })
-    .then(function(token) {
-      // add to the token set only if not there already (multiple
-      // notifications!)
-      client.sismember(token, machineId, function(err, ismember) {
-        if (ismember) {
-          res.send(token);
+  }).then(function() {
+    client.hmset(machineId, {
+      endpoint: req.body.endpoint,
+      key: req.body.key,
+      name: req.body.name,
+      active: true
+    }, function() {
+      // check if token provided
+      new Promise(function(resolve, reject) {
+        if (req.body.token) {
+          console.log('DEBUG: Using existing token');
+          resolve(req.body.token);
           return;
         }
-        client.sadd(token, req.body.machineId);
-        res.send(token);
+        // creating a new token
+        console.log('DEBUG: Creating a new token');
+        crypto.randomBytes(32, function(ex, buf) {
+          resolve(buf.toString('hex'));
+        });
+      }).then(function(token) {
+        // add to the token set only if not there already (multiple
+        // notifications!)
+        client.sismember(token, machineId, function(err, ismember) {
+          if (ismember) {
+            res.send(token);
+            return;
+          }
+          client.sadd(token, req.body.machineId);
+          res.send(token);
+        });
       });
     });
+  }, function() {
+    console.log('DEBUG: Attempt to use a non existing token');
+    res.sendStatus(404);
   });
 });
 

@@ -1,13 +1,23 @@
 var registrationPromise = navigator.serviceWorker.register('service-worker.js');
 var machineId;
 
-document.getElementById('showTokenInput').onclick = function() {
-  document.getElementById('tokenInput').style.display = 'block';
-  document.getElementById('tokenLabel').style.display = 'block';
+// all static DOM elements
+var domShowTokenInput = document.getElementById('showTokenInput');
+var domTokenInput = document.getElementById('tokenInput');
+var domTokenLabel = document.getElementById('tokenLabel');
+var domMachineName = document.getElementById('machineName');
+var domToken = document.getElementById('token');
+var domRegister = document.getElementById('register');
+var domUnregister = document.getElementById('unregister');
+var domMachines = document.getElementById('machines');
+
+domShowTokenInput.onclick = function() {
+  domTokenInput.style.display = 'block';
+  domTokenLabel.style.display = 'block';
   this.style.display = 'none';
 };
 
-document.getElementById('machineName').placeholder = window.navigator.userAgent;
+domMachineName.placeholder = window.navigator.userAgent;
 
 function register() {
   localforage.getItem('token').then(function(token) {
@@ -28,6 +38,7 @@ function register() {
     }).then(function(subscription) {
       var key = subscription.getKey ? subscription.getKey('p256dh') : '';
 
+      console.log(domMachineName, domMachineName.value);
       fetch('./register', {
         method: 'post',
         headers: {
@@ -37,13 +48,13 @@ function register() {
           endpoint: subscription.endpoint,
           key: key ? btoa(String.fromCharCode.apply(null, new Uint8Array(key))) : '',
           machineId: machineId,
-          token: document.getElementById('tokenInput').value,
-          name: document.getElementById('machineName').value
+          token: domTokenInput.value,
+          name: domMachineName.value
         }),
       }).then(function(response) {
         response.text().then(function(token) {
           localforage.setItem('token', token);
-          document.getElementById('token').textContent = token;
+          domToken.textContent = token;
           showSection('unregistrationForm');
         });
       });
@@ -51,7 +62,7 @@ function register() {
   });
 }
 
-document.getElementById('register').onclick = register;
+domRegister.onclick = register;
 
 var sections = ['registrationForm', 'unregistrationForm'];
 function showSection(section) {
@@ -64,7 +75,7 @@ function showSection(section) {
   }
 }
 
-document.getElementById('unregister').onclick = function() {
+domUnregister.onclick = function() {
   localforage.getItem('token').then(function(token) {
     fetch('./unregister', {
       method: 'post',
@@ -76,7 +87,7 @@ document.getElementById('unregister').onclick = function() {
         machineId: machineId
       }),
     }).then(function(response) {
-      document.getElementById('token').textContent = '';
+      domToken.textContent = '';
       showSection('registrationForm');
       localforage.removeItem('token');
     });
@@ -89,6 +100,18 @@ function makeId(length) {
     for( var i=0; i < length; i++ )
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     return text;
+}
+
+// displays all machines assigned to a token from an object
+function displayMachines(machines) {
+  // clean current elements
+  var ul;
+  var machine;
+  for (var index = 0; index < machines.length; index++) {
+    machine = machines[index];
+    ul = document.createElement('ul');
+    ul.appendChild(document.createTextNode(machine.name || machine.id);
+  }
 }
 
 window.onload = function() {
@@ -104,7 +127,7 @@ window.onload = function() {
     if (token) {
       showSection(null);
       showSection('unregistrationForm');
-      document.getElementById('token').textContent = token;
+      domToken.textContent = token;
     } else {
       showSection('registrationForm');
     }
