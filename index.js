@@ -312,12 +312,14 @@ app.post('/notify', function(req, res) {
     client.smembers(token, function(err, machines) {
       // send notification to all machines assigned to `token`
       if (!machines) {
-        console.log('ERROR: broken token');
-        client.del(token, function() {
-          res.send(404);
-        });
+        console.error('ERROR: broken token');
+
+        redisDel(token)
+        .then(() => res.send(404));
+
         return;
       }
+
       var promises = machines.map(function(machine) {
         return sendNotificationPromise(machine, req);
       });
