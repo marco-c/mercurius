@@ -21,9 +21,6 @@ self.addEventListener('pushsubscriptionchange', function(event) {
 
       localforage.getItem('machineId')
       .then(function(machineId) {
-        if (!token) {
-          return;
-        }
         return self.registration.pushManager.subscribe({ userVisibleOnly: true })
         .then(function(subscription) {
           var key = subscription.getKey ? subscription.getKey('p256dh') : '';

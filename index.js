@@ -109,11 +109,22 @@ app.post('/unregister', function(req, res) {
       return;
     }
     client.smembers(token, function(err, machines) {
-      for (var index = 0; index < machines.length; index++) {
-        client.del(machines[index]);
+      function makePromise(machine) {
+        return new Promise(function(resolve, reject) {
+          client.del(machine, function(err, result) {
+            resolve();
+          });
+        });
       }
-      client.del(token, function(err) {
-        res.sendStatus(200);
+      var promises = [];
+      for (var index = 0; index < machines.length; index++) {
+        promises.push(makePromise(machines[index]));
+      }
+      Promise.all(promises)
+      .then(function() {
+        client.del(token, function(err) {
+          res.sendStatus(200);
+        });
       });
     });
   });
