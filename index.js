@@ -308,33 +308,25 @@ app.post('/updateMeta', function(req, res) {
   var token = req.body.token;
   var machineId = req.body.machineId;
 
-  redisExists(token)
-  .then(function(exists) {
-    if (!exists) {
+  redisSismember(token, machineId)
+  .then(function(isMember) {
+    if (!isMember) {
       res.sendStatus(404);
       return;
     }
 
-    return redisSismember(token, machineId)
-    .then(function(isMember) {
-      if (!isMember) {
+    return redisExists(machineId)
+    .then(function(exists) {
+      if (!exists) {
         res.sendStatus(404);
         return;
       }
 
-      return redisExists(machineId)
-      .then(function(exists) {
-        if (!exists) {
-          res.sendStatus(404);
-          return;
-        }
-
-        return redisHmset(machineId, {
-          "name": req.body.name,
-          "active": req.body.active
-        })
-        .then(() => res.sendStatus(200));
-      });
+      return redisHmset(machineId, {
+        "name": req.body.name,
+        "active": req.body.active
+      })
+      .then(() => res.sendStatus(200));
     });
   })
   .catch(function(err) {
