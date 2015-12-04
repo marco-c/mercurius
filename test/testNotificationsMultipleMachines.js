@@ -48,4 +48,21 @@ describe('mercurius', function() {
         .expect(200, done);
       });
   });
+
+  it('returns `500` if there\'s a failure in sending a notifications to one of the machines of a registered user', function(done) {
+    nock('https://localhost:50006')
+    .post('/')
+    .reply(201);
+
+    nock('https://localhost:50005')
+    .post('/')
+    .reply(404);
+
+    request(mercurius.app)
+    .post('/notify')
+    .send({
+      token: token,
+    })
+    .expect(500, done);
+  });
 });
