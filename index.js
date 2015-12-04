@@ -98,6 +98,18 @@ function redisHgetall(hash) {
   });
 }
 
+function redisSrem(key, member) {
+  return new Promise(function(resolve, reject) {
+    client.srem(key, member, function(err) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
 app.use(bodyParser.json());
 
 app.use(function(req, res, next) {
@@ -244,9 +256,8 @@ app.post('/unregisterMachine', function(req, res) {
 
       return redisDel(machineId)
       .then(function() {
-        client.srem(token, machineId, function(err) {
-          res.sendStatus(200);
-        });
+        return redisSrem(token, machineId)
+        .then(() => res.sendStatus(200));
       });
     });
   })
