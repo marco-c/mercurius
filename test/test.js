@@ -211,29 +211,6 @@ describe('mercurius', function() {
       .expect(404, done);
   });
 
-  it('updates the metadata successfully on `updateMeta`', function(done) {
-    nock('https://localhost:50007')
-    .post('/')
-    .reply(201);
-
-    request(mercurius.app)
-      .post('/updateMeta')
-      .send({
-        token: token,
-        machineId: 'machineX',
-        name: 'newName',
-        active: false,
-      })
-      .expect(200, function() {
-        request(mercurius.app)
-          .post('/notify')
-          .send({
-            token: token,
-          })
-          .expect(200, done);
-      });
-  });
-
   it('replies with 404 on `updateRegistration` when a registration doesn\'t exist', function(done) {
     client.sadd(token, 'nonexistingmachine', function() {
       request(mercurius.app)
