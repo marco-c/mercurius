@@ -8,8 +8,10 @@ gulp.task('clean', function(done) {
   done();
 });
 
+var ignore = ['!./dist/**', '!./node_modules/**', '!./coverage/**'];
+
 gulp.task('lint', function() {
-  return gulp.src(['./*.js', './*/*.js'])
+  return gulp.src(['**/*.js'].concat(ignore))
     .pipe(jshint({esnext: true}))
     .pipe(jshint.reporter('default', {esnext: true}));
 });
