@@ -50,6 +50,18 @@ function redisSismember(key, member) {
   });
 }
 
+function redisHmset(hash, object) {
+  return new Promise(function(resolve, reject) {
+    client.hmset(hash, object, function(err) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
 app.use(bodyParser.json());
 
 app.use(function(req, res, next) {
@@ -101,14 +113,15 @@ app.post('/register', function(req, res) {
       }
     }, reject);
   }).then(function() {
-    client.hmset(machineId, {
+    redisHmset(machineId, {
       endpoint: req.body.endpoint,
       key: req.body.key,
       name: req.body.name,
       active: true
-    }, function() {
+    })
+    .then(function() {
       // check if token provided
-      new Promise(function(resolve, reject) {
+      return new Promise(function(resolve, reject) {
         if (req.body.token) {
           console.log('DEBUG: Registering machine ' + machineId + ' using existing token');
           resolve(req.body.token);
@@ -122,7 +135,7 @@ app.post('/register', function(req, res) {
       }).then(function(token) {
         // add to the token set only if not there already (multiple
         // notifications!)
-        redisSismember(token, machineId)
+        return redisSismember(token, machineId)
         .then(function(isMember) {
           if (isMember) {
             res.send(token);
@@ -131,12 +144,12 @@ app.post('/register', function(req, res) {
 
           client.sadd(token, req.body.machineId);
           res.send(token);
-        })
-        .catch(function(err) {
-          console.error(err);
-          res.sendStatus(500);
         });
       });
+    })
+    .catch(function(err) {
+      console.error(err);
+      res.sendStatus(500);
     });
   }, function() {
     console.log('DEBUG: Attempt to use a non existing token');
@@ -232,16 +245,11 @@ app.post('/updateRegistration', function(req, res) {
         return;
       }
 
-      client.hmset(machineId, {
+      return redisHmset(machineId, {
         "endpoint": req.body.endpoint,
         "key": req.body.key
-      }, function() {
-        res.sendStatus(200);
-      });
-    })
-    .catch(function(err) {
-      console.error(err);
-      res.sendStatus(500);
+      })
+      .then(() => res.sendStatus(200));
     });
   })
   .catch(function(err) {
@@ -277,12 +285,11 @@ app.post('/updateMeta', function(req, res) {
           return;
         }
 
-        client.hmset(machineId, {
+        return redisHmset(machineId, {
           "name": req.body.name,
           "active": req.body.active
-        }, function() {
-          res.sendStatus(200);
-        });
+        })
+        .then(() => res.sendStatus(200));
       });
     });
   })
