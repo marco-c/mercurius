@@ -86,6 +86,18 @@ function redisSadd(key, member) {
   });
 }
 
+function redisHgetall(hash) {
+  return new Promise(function(resolve, reject) {
+    client.hgetall(hash, function(err, registration) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(registration);
+      }
+    });
+  });
+}
+
 app.use(bodyParser.json());
 
 app.use(function(req, res, next) {
@@ -339,11 +351,19 @@ app.post('/notify', function(req, res) {
       }
 
       var promises = machines.map(function(machine) {
-        return sendNotificationPromise(machine, req);
+        return redisHgetall(machine)
+        .then(function(registration) {
+          console.log('DEBUG: sending notification to: ' + registration.endpoint);
+
+          return webPush.sendNotification(registration.endpoint, req.body.ttl, registration.key, JSON.stringify(req.body.payload))
+          .catch(function(err) {
+            throw new Error('Error in sending notification: ' + err);
+          });
+        });
       });
 
       return Promise.all(promises)
-      .then(status => res.sendStatus(status));
+      .then(() => res.sendStatus(200));
     });
   })
   .catch(function(err) {
@@ -351,25 +371,6 @@ app.post('/notify', function(req, res) {
     res.sendStatus(500);
   });
 });
-
-function sendNotificationPromise(machineId, req) {
-  return new Promise(function(resolve, reject) {
-    client.hgetall(machineId, function(err, registration) {
-      console.log('DEBUG: sending notification to: ' + registration.endpoint);
-      webPush.sendNotification(
-          registration.endpoint,
-          req.body.ttl,
-          registration.key,
-          JSON.stringify(req.body.payload)
-      ).then(function() {
-        resolve(200);
-      }, function(err) {
-        console.log('Error in sending notification: ' + err);
-        reject(err);
-      });
-    });
-  });
-}
 
 if (!process.env.GCM_API_KEY) {
   console.warn('Set the GCM_API_KEY environment variable to support GCM');
