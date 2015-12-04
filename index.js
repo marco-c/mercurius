@@ -52,7 +52,6 @@ app.get('/', function(req, res) {
 app.post('/register', function(req, res) {
   // add/update machine in database
   var machineId = req.body.machineId;
-  console.log('DEBUG: token: ' + req.body.token + ', machineId: ' + machineId + ', machineName: ' + req.body.name);
   new Promise(function(allfine, reject) {
     if (!req.body.token) {
       return allfine();
@@ -124,6 +123,7 @@ app.post('/unregister', function(req, res) {
 app.post('/unregisterMachine', function(req, res) {
   var token = req.body.token;
   var machineId = req.body.machineId;
+  console.log('Unregistering machine: ' + machineId);
   client.exists(token, function(err, result) {
     if (!result) {
       res.sendStatus(404);

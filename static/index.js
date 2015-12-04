@@ -37,8 +37,6 @@ function register() {
       });
     }).then(function(subscription) {
       var key = subscription.getKey ? subscription.getKey('p256dh') : '';
-
-      console.log(domMachineName, domMachineName.value);
       fetch('./register', {
         method: 'post',
         headers: {
@@ -53,9 +51,13 @@ function register() {
         }),
       }).then(function(response) {
         response.text().then(function(token) {
-          localforage.setItem('token', token);
-          domToken.textContent = token;
-          showSection('unregistrationForm');
+          if (response.ok) {
+              localforage.setItem('token', token);
+              domToken.textContent = token;
+              showSection('unregistrationForm');
+          } else {
+            alert('Error: ' + token);
+          }
         });
       });
     });
@@ -77,7 +79,7 @@ function showSection(section) {
 
 domUnregister.onclick = function() {
   localforage.getItem('token').then(function(token) {
-    fetch('./unregister', {
+    fetch('./unregisterMachine', {
       method: 'post',
       headers: {
         'Content-type': 'application/json'
@@ -100,18 +102,6 @@ function makeId(length) {
     for( var i=0; i < length; i++ )
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     return text;
-}
-
-// displays all machines assigned to a token from an object
-function displayMachines(machines) {
-  // clean current elements
-  var ul;
-  var machine;
-  for (var index = 0; index < machines.length; index++) {
-    machine = machines[index];
-    ul = document.createElement('ul');
-    ul.appendChild(document.createTextNode(machine.name || machine.id));
-  }
 }
 
 window.onload = function() {
