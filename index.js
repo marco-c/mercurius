@@ -62,6 +62,18 @@ function redisHmset(hash, object) {
   });
 }
 
+function redisSmembers(hash) {
+  return new Promise(function(resolve, reject) {
+    client.smembers(hash, function(err, machines) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(machines);
+      }
+    });
+  });
+}
+
 app.use(bodyParser.json());
 
 app.use(function(req, res, next) {
@@ -168,18 +180,15 @@ app.post('/unregister', function(req, res) {
       return;
     }
 
-    client.smembers(token, function(err, machines) {
+    return redisSmembers(token)
+    .then(function(machines) {
       var promises = machines.map(function(machine) {
         return redisDel(machine);
       });
 
-      Promise.all(promises)
+      return Promise.all(promises)
       .then(() => redisDel(token))
-      .then(() => res.sendStatus(200))
-      .catch(function(err) {
-        console.error(err);
-        res.sendStatus(500);
-      });
+      .then(() => res.sendStatus(200));
     });
   })
   .catch(function(err) {
@@ -309,26 +318,20 @@ app.post('/notify', function(req, res) {
       return;
     }
 
-    client.smembers(token, function(err, machines) {
+    return redisSmembers(token)
+    .then(function(machines) {
       // send notification to all machines assigned to `token`
       if (!machines) {
-        console.error('ERROR: broken token');
-
-        redisDel(token)
-        .then(() => res.send(404));
-
-        return;
+        return redisDel(token)
+        .then(() => { throw new Error('Broken token.'); });
       }
 
       var promises = machines.map(function(machine) {
         return sendNotificationPromise(machine, req);
       });
 
-      Promise.all(promises).then(function(status) {
-        res.sendStatus(status);
-      }, function() {
-        res.sendStatus(500);
-      });
+      return Promise.all(promises)
+      .then(status => res.sendStatus(status));
     });
   })
   .catch(function(err) {
