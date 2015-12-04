@@ -74,6 +74,18 @@ function redisSmembers(hash) {
   });
 }
 
+function redisSadd(key, member) {
+  return new Promise(function(resolve, reject) {
+    client.sadd(key, member, function(err) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
 app.use(bodyParser.json());
 
 app.use(function(req, res, next) {
@@ -154,8 +166,8 @@ app.post('/register', function(req, res) {
             return;
           }
 
-          client.sadd(token, req.body.machineId);
-          res.send(token);
+          return redisSadd(token, req.body.machineId)
+          .then(() => res.send(token));
         });
       });
     })
