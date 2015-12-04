@@ -9,7 +9,7 @@ gulp.task('clean', function(done) {
 });
 
 gulp.task('lint', function() {
-  return gulp.src(['./*.js', './static/*.js'])
+  return gulp.src(['./*.js', './*/*.js'])
     .pipe(jshint({esnext: true}))
     .pipe(jshint.reporter('default', {esnext: true}));
 });

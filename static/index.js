@@ -96,12 +96,11 @@ domUnregister.onclick = function() {
   });
 };
 
+// generate a random string (default: 40)
 function makeId(length) {
-    var text = "";
-    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    for( var i=0; i < length; i++ )
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    return text;
+  var arr = new Uint8Array((length || 40) / 2)
+  window.crypto.getRandomValues(arr);
+  return [].map.call(arr, function(n) { return n.toString(16); }).join("");
 }
 
 window.onload = function() {
