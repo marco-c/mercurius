@@ -23,7 +23,7 @@ describe('mercurius', function() {
   });
 
   it('updates the metadata successfully on `updateMeta`', function(done) {
-    nock('https://localhost:50007')
+    nock('https://localhost:50005')
     .post('/')
     .reply(201);
 
