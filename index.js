@@ -14,6 +14,18 @@ app.set('view engine', 'handlebars');
 
 var client = redis.createClient(process.env.REDISCLOUD_URL, {no_ready_check: true});
 
+function redisDel(hash) {
+  return new Promise(function(resolve, reject) {
+    client.del(hash, function(err, result) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
 app.use(bodyParser.json());
 
 app.use(function(req, res, next) {
@@ -108,23 +120,18 @@ app.post('/unregister', function(req, res) {
       res.sendStatus(404);
       return;
     }
+
     client.smembers(token, function(err, machines) {
-      function makePromise(machine) {
-        return new Promise(function(resolve, reject) {
-          client.del(machine, function(err, result) {
-            resolve();
-          });
-        });
-      }
-      var promises = [];
-      for (var index = 0; index < machines.length; index++) {
-        promises.push(makePromise(machines[index]));
-      }
+      var promises = machines.map(function(machine) {
+        return redisDel(machine);
+      });
+
       Promise.all(promises)
-      .then(function() {
-        client.del(token, function(err) {
-          res.sendStatus(200);
-        });
+      .then(() => redisDel(token))
+      .then(() => res.sendStatus(200))
+      .catch(function(err) {
+        console.error(err);
+        res.sendStatus(500);
       });
     });
   });
@@ -140,15 +147,21 @@ app.post('/unregisterMachine', function(req, res) {
       res.sendStatus(404);
       return;
     }
+
     client.exists(machineId, function(err, result) {
       if (!result) {
         res.sendStatus(404);
         return;
       }
-      client.del(machineId, function(err) {
+
+      redisDel(machineId)
+      .then(function() {
         client.srem(token, machineId, function(err) {
           res.sendStatus(200);
         });
+      }, function(err) {
+        console.error(err);
+        res.sendStatus(500);
       });
     });
   });
