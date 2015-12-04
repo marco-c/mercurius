@@ -47,20 +47,20 @@ app.get('/', function(req, res) {
   res.render('index', { title: 'Hey', message: 'Hello there!'});
 });
 
-// adds a new machine and adds to a token set
+// adds a new machine to a token set
 // creates a new token set if needed
 app.post('/register', function(req, res) {
   // add/update machine in database
   var machineId = req.body.machineId;
-  new Promise(function(allfine, reject) {
+  new Promise(function(resolve, reject) {
     if (!req.body.token) {
-      return allfine();
+      return resolve();
     }
     client.exists(req.body.token, function(err, result) {
       if (!result || err) {
         return reject();
       }
-      allfine();
+      resolve();
     });
   }).then(function() {
     client.hmset(machineId, {
@@ -216,29 +216,37 @@ app.post('/notify', function(req, res) {
     }
     client.smembers(token, function(err, machines) {
       // send notification to all machines assigned to `token`
+      var promises = [];
       for (var index = 0; index < machines.length; index++) {
-        client.hgetall(machines[index], sendNotification);
+        promises.push(sendNotificationPromise(machines[index], req));
       }
+      Promise.all(promises).then(function(status) {
+        res.sendStatus(status);
+      }, function() {
+        res.sendStatus(500);
+      });
     });
   });
-
-  function sendNotification(err, registration) {
-    console.log('DEBUG: sending notification to: ' + registration.endpoint);
-    webPush.sendNotification(
-        registration.endpoint,
-        req.body.ttl,
-        registration.key,
-        JSON.stringify(req.body.payload)
-    ).then(function() {
-      // XXX: this should happen after collecting data from all
-      // notification attempts
-      res.sendStatus(200);
-    }, function(err) {
-      console.log('Error in sending notification: ' + err);
-      res.sendStatus(500);
-    });
-  }
 });
+
+function sendNotificationPromise(machineId, req) {
+  return new Promise(function(resolve, reject) {
+    client.hgetall(machineId, function(err, registration) {
+      console.log('DEBUG: sending notification to: ' + registration.endpoint);
+      webPush.sendNotification(
+          registration.endpoint,
+          req.body.ttl,
+          registration.key,
+          JSON.stringify(req.body.payload)
+      ).then(function() {
+        resolve(200);
+      }, function(err) {
+        console.log('Error in sending notification: ' + err);
+        reject(err);
+      });
+    });
+  });
+}
 
 if (!process.env.GCM_API_KEY) {
   console.warn('Set the GCM_API_KEY environment variable to support GCM');
