@@ -27,6 +27,12 @@ describe('mercurius', function() {
     });
   });
 
+  it('returns index.html', function(done) {
+    request(mercurius.app)
+    .get('/')
+    .expect(200, done);
+  });
+
   it('successfully registers users', function(done) {
     request(mercurius.app)
       .post('/register')
