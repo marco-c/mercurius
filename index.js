@@ -38,6 +38,18 @@ function redisExists(hash) {
   });
 }
 
+function redisSismember(key, member) {
+  return new Promise(function(resolve, reject) {
+    client.sismember(key, member, function(err, isMember) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(isMember);
+      }
+    });
+  });
+}
+
 app.use(bodyParser.json());
 
 app.use(function(req, res, next) {
@@ -110,13 +122,19 @@ app.post('/register', function(req, res) {
       }).then(function(token) {
         // add to the token set only if not there already (multiple
         // notifications!)
-        client.sismember(token, machineId, function(err, ismember) {
-          if (ismember) {
+        redisSismember(token, machineId)
+        .then(function(isMember) {
+          if (isMember) {
             res.send(token);
             return;
           }
+
           client.sadd(token, req.body.machineId);
           res.send(token);
+        })
+        .catch(function(err) {
+          console.error(err);
+          res.sendStatus(500);
         });
       });
     });
@@ -200,13 +218,14 @@ app.post('/updateRegistration', function(req, res) {
   var token = req.body.token;
   var machineId = req.body.machineId;
 
-  client.sismember(token, machineId, function(err, ismember) {
-    if (!ismember) {
+  redisSismember(token, machineId)
+  .then(function(isMember) {
+    if (!isMember) {
       res.sendStatus(404);
       return;
     }
 
-    redisExists(machineId)
+    return redisExists(machineId)
     .then(function(exists) {
       if (!exists) {
         res.sendStatus(404);
@@ -224,6 +243,10 @@ app.post('/updateRegistration', function(req, res) {
       console.error(err);
       res.sendStatus(500);
     });
+  })
+  .catch(function(err) {
+    console.error(err);
+    res.sendStatus(500);
   });
 });
 
@@ -240,13 +263,14 @@ app.post('/updateMeta', function(req, res) {
       return;
     }
 
-    client.sismember(token, machineId, function(err, ismember) {
-      if (!ismember) {
+    return redisSismember(token, machineId)
+    .then(function(isMember) {
+      if (!isMember) {
         res.sendStatus(404);
         return;
       }
 
-      redisExists(machineId)
+      return redisExists(machineId)
       .then(function(exists) {
         if (!exists) {
           res.sendStatus(404);
@@ -259,10 +283,6 @@ app.post('/updateMeta', function(req, res) {
         }, function() {
           res.sendStatus(200);
         });
-      })
-      .catch(function(err) {
-        console.error(err);
-        res.sendStatus(500);
       });
     });
   })
