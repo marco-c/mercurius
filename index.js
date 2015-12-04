@@ -72,12 +72,12 @@ app.post('/register', function(req, res) {
       // check if token provided
       new Promise(function(resolve, reject) {
         if (req.body.token) {
-          console.log('DEBUG: Using existing token');
+          console.log('DEBUG: Registering machine ' + machineId + ' using existing token');
           resolve(req.body.token);
           return;
         }
         // creating a new token
-        console.log('DEBUG: Creating a new token');
+        console.log('DEBUG: Creating a new token for machine ' + machineId);
         crypto.randomBytes(32, function(ex, buf) {
           resolve(buf.toString('hex'));
         });
@@ -223,6 +223,7 @@ app.post('/notify', function(req, res) {
   });
 
   function sendNotification(err, registration) {
+    console.log('DEBUG: sending notification to: ' + registration.endpoint);
     webPush.sendNotification(
         registration.endpoint,
         req.body.ttl,
@@ -233,6 +234,7 @@ app.post('/notify', function(req, res) {
       // notification attempts
       res.sendStatus(200);
     }, function(err) {
+      console.log('Error in sending notification: ' + err);
       res.sendStatus(500);
     });
   }
