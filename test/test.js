@@ -5,7 +5,6 @@ var nock = require('nock');
 var should = require('chai').should();
 var redis = require('redis');
 
-
 var client = redis.createClient(process.env.REDISCLOUD_URL, {no_ready_check: true});
 
 describe('mercurius', function() {
