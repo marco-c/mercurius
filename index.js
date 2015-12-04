@@ -6,8 +6,11 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var redis = require('redis');
 var webPush = require('web-push');
+var exphbs  = require('express-handlebars');
 
 var app = express();
+app.engine('handlebars', exphbs({defaultLayout: 'main'}));
+app.set('view engine', 'handlebars');
 
 var client = redis.createClient(process.env.REDISCLOUD_URL, {no_ready_check: true});
 
@@ -39,11 +42,17 @@ if (!fs.existsSync('./dist')) {
 }
 app.use(express.static('./dist'));
 
+// load current data for
+app.get('/', function(req, res) {
+  res.render('index', { title: 'Hey', message: 'Hello there!'});
+});
+
 // adds a new machine and adds to a token set
 // creates a new token set if needed
 app.post('/register', function(req, res) {
   // add/update machine in database
   var machineId = req.body.machineId;
+  console.log(req.body.name);
   client.hmset(machineId, {
     endpoint: req.body.endpoint,
     key: req.body.key,

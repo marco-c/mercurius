@@ -1,11 +1,13 @@
 var registrationPromise = navigator.serviceWorker.register('service-worker.js');
 var machineId;
 
-document.getElementById('hideTokenInput').onclick = function() {
-  document.getElementById('tokenInput').style.display = 'none';
-  document.getElementById('tokenLabel').style.display = 'none';
+document.getElementById('showTokenInput').onclick = function() {
+  document.getElementById('tokenInput').style.display = 'block';
+  document.getElementById('tokenLabel').style.display = 'block';
   this.style.display = 'none';
-}
+};
+
+document.getElementById('machineName').placeholder = window.navigator.userAgent;
 
 function register() {
   localforage.getItem('token').then(function(token) {
@@ -35,7 +37,8 @@ function register() {
           endpoint: subscription.endpoint,
           key: key ? btoa(String.fromCharCode.apply(null, new Uint8Array(key))) : '',
           machineId: machineId,
-          token: document.getElementById('tokenInput').value
+          token: document.getElementById('tokenInput').value,
+          name: document.getElementById('machineName').value
         }),
       }).then(function(response) {
         response.text().then(function(token) {
@@ -106,4 +109,4 @@ window.onload = function() {
       showSection('registrationForm');
     }
   });
-}
+};

@@ -14,7 +14,7 @@ program.version(packageJson.version);
 program.command('notify [mercuriusURL] [token] [payload]')
        .description('send a notification')
        .action(function(mercuriusURL, token, payload) {
-  var payload = JSON.stringify({
+  var payload_string = JSON.stringify({
     token: token,
     payload: JSON.parse(payload),
     ttl: 200,
@@ -28,7 +28,7 @@ program.command('notify [mercuriusURL] [token] [payload]')
     method: 'POST',
     headers: {
      'Content-Type': 'application/json',
-     'Content-Length': payload.length,
+     'Content-Length': payload_string.length,
     }
   };
 
@@ -36,7 +36,7 @@ program.command('notify [mercuriusURL] [token] [payload]')
     console.log('Response statusCode: ' + response.statusCode);
   });
 
-  request.write(payload);
+  request.write(payload_string);
   request.end();
 });
 

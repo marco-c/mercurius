@@ -103,3 +103,7 @@ h3 a {
   margin: 0; padding: 0;
   font-weight: bold;
 }
+
+#tokenInput, #tokenLabel {
+	display: none;
+}
