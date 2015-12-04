@@ -44,7 +44,7 @@ app.use(express.static('./dist'));
 
 // load current data for
 app.get('/', function(req, res) {
-  res.render('index', { title: 'Hey', message: 'Hello there!'});
+  res.render('index');
 });
 
 // adds a new machine to a token set
@@ -161,27 +161,21 @@ app.post('/unregisterMachine', function(req, res) {
 app.post('/updateRegistration', function(req, res) {
   var token = req.body.token;
   var machineId = req.body.machineId;
-  client.exists(token, function(err, exists) {
-    if (!exists) {
+  client.sismember(token, machineId, function(err, ismember) {
+    if (!ismember) {
       res.sendStatus(404);
       return;
     }
-    client.sismember(token, machineId, function(err, ismember) {
-      if (!ismember) {
+    client.exists(machineId, function(err, exists) {
+      if (!exists) {
         res.sendStatus(404);
         return;
       }
-      client.exists(machineId, function(err, exists) {
-        if (!exists) {
-          res.sendStatus(404);
-          return;
-        }
-        client.hmset(machineId, {
-          "endpoint": req.body.endpoint,
-          "key": req.body.key
-        }, function() {
-          res.sendStatus(200);
-        });
+      client.hmset(machineId, {
+        "endpoint": req.body.endpoint,
+        "key": req.body.key
+      }, function() {
+        res.sendStatus(200);
       });
     });
   });
