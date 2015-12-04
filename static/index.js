@@ -110,7 +110,7 @@ function displayMachines(machines) {
   for (var index = 0; index < machines.length; index++) {
     machine = machines[index];
     ul = document.createElement('ul');
-    ul.appendChild(document.createTextNode(machine.name || machine.id);
+    ul.appendChild(document.createTextNode(machine.name || machine.id));
   }
 }
 

@@ -62,7 +62,7 @@ app.post('/register', function(req, res) {
         return reject();
       }
       allfine();
-    })
+    });
   }).then(function() {
     client.hmset(machineId, {
       endpoint: req.body.endpoint,
