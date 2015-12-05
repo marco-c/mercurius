@@ -230,4 +230,13 @@ describe('mercurius', function() {
         .expect(404, done);
     });
   });
+
+  it('replies with 404 on `getPayload` if there\'s no payload available (because endpoint is not GCM)', function(done) {
+    request(mercurius.app)
+      .get('/getPayload')
+      .send({
+        token: token,
+      })
+      .expect(404, done);
+  });
 });
