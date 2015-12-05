@@ -14,6 +14,30 @@ app.set('view engine', 'handlebars');
 
 var client = redis.createClient(process.env.REDISCLOUD_URL, {no_ready_check: true});
 
+function redisSet(hash, value) {
+  return new Promise(function(resolve, reject) {
+    client.set(hash, value, function(err) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+function redisGet(hash) {
+  return new Promise(function(resolve, reject) {
+    client.get(hash, function(err, value) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(value);
+      }
+    });
+  });
+}
+
 function redisDel(hash) {
   return new Promise(function(resolve, reject) {
     client.del(hash, function(err, result) {
@@ -359,15 +383,43 @@ app.post('/notify', function(req, res) {
         .then(function(registration) {
           console.log('DEBUG: sending notification to: ' + registration.endpoint);
 
-          return webPush.sendNotification(registration.endpoint, req.body.ttl, registration.key, JSON.stringify(req.body.payload))
-          .catch(function(err) {
-            throw new Error('Error in sending notification: ' + err);
-          });
+          if (registration.endpoint.indexOf('https://android.googleapis.com/gcm/send') === 0) {
+            return redisSet(token + '-payload', JSON.stringify(req.body.payload))
+            .then(() => webPush.sendNotification(registration.endpoint, req.body.ttl));
+          } else {
+            return webPush.sendNotification(registration.endpoint, req.body.ttl, registration.key, JSON.stringify(req.body.payload));
+          }
         });
       });
 
       return Promise.all(promises)
       .then(() => res.sendStatus(200));
+    });
+  })
+  .catch(function(err) {
+    console.error('Error in sending notification: ' + err);
+    res.sendStatus(500);
+  });
+});
+
+app.get('/getPayload', function(req, res) {
+  var hash = req.body.token + '-payload';
+
+  redisExists(hash)
+  .then(function(exists) {
+    if (!exists) {
+      res.sendStatus(404);
+      return;
+    }
+
+    return redisGet(hash)
+    .then(function(payload) {
+      if (!payload) {
+        res.sendStatus(404);
+        return;
+      }
+
+      res.send(payload);
     });
   })
   .catch(function(err) {
