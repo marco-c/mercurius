@@ -1,14 +1,28 @@
 importScripts('localforage.min.js');
 
 self.addEventListener('push', function(event) {
-  var data = event.data ? event.data.json() : null;
+  function getPayload() {
+    if (event.data) {
+      return Promise.resolve(event.data.json());
+    } else {
+      return fetch('./getPayload')
+      .then(function(response) {
+        return response.json();
+      });
+    }
+  }
 
-  var title = data ? data.title : 'Mercurius';
-  var body = data ? data.body : 'Notification';
+  event.waitUntil(
+    getPayload()
+    .then(function(data) {
+      var title = data ? data.title : 'Mercurius';
+      var body = data ? data.body : 'Notification';
 
-  event.waitUntil(self.registration.showNotification(title, {
-    body: body,
-  }));
+      event.waitUntil(self.registration.showNotification(title, {
+        body: body,
+      }));
+    })
+  );
 });
 
 self.addEventListener('pushsubscriptionchange', function(event) {
