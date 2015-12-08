@@ -4,135 +4,13 @@ var fs = require('fs');
 var crypto = require('crypto');
 var express = require('express');
 var bodyParser = require('body-parser');
-var redis = require('redis');
+var redis = require('./redis.js');
 var webPush = require('web-push');
 var exphbs  = require('express-handlebars');
 
 var app = express();
 app.engine('handlebars', exphbs({defaultLayout: 'main'}));
 app.set('view engine', 'handlebars');
-
-var client = redis.createClient(process.env.REDISCLOUD_URL, {no_ready_check: true});
-
-function redisSet(hash, value) {
-  return new Promise(function(resolve, reject) {
-    client.set(hash, value, function(err) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-function redisGet(hash) {
-  return new Promise(function(resolve, reject) {
-    client.get(hash, function(err, value) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(value);
-      }
-    });
-  });
-}
-
-function redisDel(hash) {
-  return new Promise(function(resolve, reject) {
-    client.del(hash, function(err, result) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-function redisExists(hash) {
-  return new Promise(function(resolve, reject) {
-    client.exists(hash, function(err, result) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(result);
-      }
-    });
-  });
-}
-
-function redisSismember(key, member) {
-  return new Promise(function(resolve, reject) {
-    client.sismember(key, member, function(err, isMember) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(isMember);
-      }
-    });
-  });
-}
-
-function redisHmset(hash, object) {
-  return new Promise(function(resolve, reject) {
-    client.hmset(hash, object, function(err) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-function redisSmembers(hash) {
-  return new Promise(function(resolve, reject) {
-    client.smembers(hash, function(err, machines) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(machines);
-      }
-    });
-  });
-}
-
-function redisSadd(key, member) {
-  return new Promise(function(resolve, reject) {
-    client.sadd(key, member, function(err) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-function redisHgetall(hash) {
-  return new Promise(function(resolve, reject) {
-    client.hgetall(hash, function(err, registration) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(registration);
-      }
-    });
-  });
-}
-
-function redisSrem(key, member) {
-  return new Promise(function(resolve, reject) {
-    client.srem(key, member, function(err) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
 
 app.use(bodyParser.json());
 
@@ -177,7 +55,7 @@ app.post('/register', function(req, res) {
       return resolve();
     }
 
-    redisExists(req.body.token).then(function(result) {
+    redis.exists(req.body.token).then(function(result) {
       if (!result) {
         reject();
       } else {
@@ -185,7 +63,7 @@ app.post('/register', function(req, res) {
       }
     }, reject);
   }).then(function() {
-    redisHmset(machineId, {
+    redis.hmset(machineId, {
       endpoint: req.body.endpoint,
       key: req.body.key,
       name: req.body.name,
@@ -207,14 +85,14 @@ app.post('/register', function(req, res) {
       }).then(function(token) {
         // add to the token set only if not there already (multiple
         // notifications!)
-        return redisSismember(token, machineId)
+        return redis.sismember(token, machineId)
         .then(function(isMember) {
           if (isMember) {
             res.send(token);
             return;
           }
 
-          return redisSadd(token, req.body.machineId)
+          return redis.sadd(token, req.body.machineId)
           .then(() => res.send(token));
         });
       });
@@ -233,21 +111,21 @@ app.post('/register', function(req, res) {
 app.post('/unregister', function(req, res) {
   var token = req.body.token;
 
-  redisExists(token)
+  redis.exists(token)
   .then(function(result) {
     if (!result) {
       res.sendStatus(404);
       return;
     }
 
-    return redisSmembers(token)
+    return redis.smembers(token)
     .then(function(machines) {
       var promises = machines.map(function(machine) {
-        return redisDel(machine);
+        return redis.del(machine);
       });
 
       return Promise.all(promises)
-      .then(() => redisDel(token))
+      .then(() => redis.del(token))
       .then(() => res.sendStatus(200));
     });
   })
@@ -264,23 +142,23 @@ app.post('/unregisterMachine', function(req, res) {
 
   console.log('Unregistering machine: ' + machineId);
 
-  redisExists(token)
+  redis.exists(token)
   .then(function(result) {
     if (!result) {
       res.sendStatus(404);
       return;
     }
 
-    return redisExists(machineId)
+    return redis.exists(machineId)
     .then(function(result) {
       if (!result) {
         res.sendStatus(404);
         return;
       }
 
-      return redisDel(machineId)
+      return redis.del(machineId)
       .then(function() {
-        return redisSrem(token, machineId)
+        return redis.srem(token, machineId)
         .then(() => res.sendStatus(200));
       });
     });
@@ -299,21 +177,21 @@ app.post('/updateRegistration', function(req, res) {
   var token = req.body.token;
   var machineId = req.body.machineId;
 
-  redisSismember(token, machineId)
+  redis.sismember(token, machineId)
   .then(function(isMember) {
     if (!isMember) {
       res.sendStatus(404);
       return;
     }
 
-    return redisExists(machineId)
+    return redis.exists(machineId)
     .then(function(exists) {
       if (!exists) {
         res.sendStatus(404);
         return;
       }
 
-      return redisHmset(machineId, {
+      return redis.hmset(machineId, {
         "endpoint": req.body.endpoint,
         "key": req.body.key
       })
@@ -332,21 +210,21 @@ app.post('/updateMeta', function(req, res) {
   var token = req.body.token;
   var machineId = req.body.machineId;
 
-  redisSismember(token, machineId)
+  redis.sismember(token, machineId)
   .then(function(isMember) {
     if (!isMember) {
       res.sendStatus(404);
       return;
     }
 
-    return redisExists(machineId)
+    return redis.exists(machineId)
     .then(function(exists) {
       if (!exists) {
         res.sendStatus(404);
         return;
       }
 
-      return redisHmset(machineId, {
+      return redis.hmset(machineId, {
         "name": req.body.name,
         "active": req.body.active
       })
@@ -362,29 +240,29 @@ app.post('/updateMeta', function(req, res) {
 app.post('/notify', function(req, res) {
   var token = req.body.token;
 
-  redisExists(token)
+  redis.exists(token)
   .then(function(exists) {
     if (!exists) {
       res.sendStatus(404);
       return;
     }
 
-    return redisSmembers(token)
+    return redis.smembers(token)
     .then(function(machines) {
       // send notification to all machines assigned to `token`
       if (!machines) {
         // XXX: Are we being too aggressive here?
-        return redisDel(token)
+        return redis.del(token)
         .then(() => { throw new Error('Broken token.'); });
       }
 
       var promises = machines.map(function(machine) {
-        return redisHgetall(machine)
+        return redis.hgetall(machine)
         .then(function(registration) {
           console.log('DEBUG: sending notification to: ' + registration.endpoint);
 
           if (registration.endpoint.indexOf('https://android.googleapis.com/gcm/send') === 0) {
-            return redisSet(token + '-payload', JSON.stringify(req.body.payload))
+            return redis.set(token + '-payload', JSON.stringify(req.body.payload))
             .then(() => webPush.sendNotification(registration.endpoint, req.body.ttl));
           } else {
             return webPush.sendNotification(registration.endpoint, req.body.ttl, registration.key, JSON.stringify(req.body.payload));
@@ -405,14 +283,14 @@ app.post('/notify', function(req, res) {
 app.get('/getPayload', function(req, res) {
   var hash = req.body.token + '-payload';
 
-  redisExists(hash)
+  redis.exists(hash)
   .then(function(exists) {
     if (!exists) {
       res.sendStatus(404);
       return;
     }
 
-    return redisGet(hash)
+    return redis.get(hash)
     .then(function(payload) {
       if (!payload) {
         res.sendStatus(404);
