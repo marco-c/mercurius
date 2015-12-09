@@ -21,7 +21,7 @@ describe('mercurius', function() {
           key: 'key',
         })
         .expect(function(res) {
-          token = res.text;
+          token = res.body.token;
         })
         .end(done);
     });
@@ -37,8 +37,8 @@ describe('mercurius', function() {
       })
       .expect(function(res) {
         assert.equal(res.status, 200);
-        assert.equal(res.text.length, 64);
-        tokenToUnregister = res.text;
+        assert.equal(res.body.token.length, 64);
+        tokenToUnregister = res.body.token;
       })
       .end(done);
   });
@@ -54,7 +54,8 @@ describe('mercurius', function() {
       })
       .expect(function(res) {
         assert.equal(res.status, 200);
-        assert.equal(res.text, tokenToUnregister);
+        assert.equal(res.body.token, tokenToUnregister);
+        assert(res.body.machines);
       })
       .end(done);
   });
@@ -72,7 +73,7 @@ describe('mercurius', function() {
         })
         .expect(function(res) {
           assert.equal(res.status, 200);
-          assert.equal(res.text, tokenToUnregister);
+          assert.equal(res.body.token, tokenToUnregister);
           client.smembers(tokenToUnregister, function(err, newmachines) {
             assert.equal(newmachines.length, startlength);
           });

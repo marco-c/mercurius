@@ -143,6 +143,42 @@ app.get('/', function(req, res) {
   res.render('index');
 });
 
+function sendMachines(req, res, token, machines) {
+  var content = {
+    token: token,
+    machines: machines
+  };
+  res.send(content);
+}
+
+app.get('/devices/:token', function(req, res) {
+  return showMachines(req, res, req.params.token);
+});
+
+// get machines for the token and send them along with the token
+function showMachines(req, res, token) {
+  if (!token) {
+    throw('No token provided');
+  }
+  var machines = {};
+  var machineId;
+  function machinePromise(machineId) {
+    return new Promise(function(resolve, reject) {
+      redisHgetall(machineId)
+        .then(function(machine) {
+          machines[machineId] = machine;
+          resolve();
+        });
+    });
+  }
+  redisSmembers(token)
+    .then(function(ids) {
+      var promises = ids.map(machinePromise);
+      Promise.all(promises)
+        .then(() => sendMachines(req, res, token, machines));
+    });
+}
+
 // adds a new machine to a token set
 // creates a new token set if needed
 app.post('/register', function(req, res) {
@@ -153,7 +189,8 @@ app.post('/register', function(req, res) {
       return resolve();
     }
 
-    redisExists(req.body.token).then(function(result) {
+    redisExists(req.body.token)
+    .then(function(result) {
       if (!result) {
         reject();
       } else {
@@ -166,8 +203,7 @@ app.post('/register', function(req, res) {
       key: req.body.key,
       name: req.body.name,
       active: true
-    })
-    .then(function() {
+    }).then(function() {
       // check if token provided
       return new Promise(function(resolve, reject) {
         if (req.body.token) {
@@ -186,12 +222,12 @@ app.post('/register', function(req, res) {
         return redisSismember(token, machineId)
         .then(function(isMember) {
           if (isMember) {
-            res.send(token);
+            showMachines(req, res, token);
             return;
           }
 
           return redisSadd(token, req.body.machineId)
-          .then(() => res.send(token));
+          .then(() => showMachines(req, res, token));
         });
       });
     })
