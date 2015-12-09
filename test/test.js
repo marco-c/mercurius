@@ -1,6 +1,6 @@
 var mercurius = require('../index.js');
 var request = require('supertest');
-var assert = require('assert');
+var assert = require('chai').assert;
 var nock = require('nock');
 var should = require('chai').should();
 var redis = require('redis');
@@ -43,6 +43,8 @@ describe('mercurius', function() {
       })
       .expect(function(res) {
         assert.equal(res.status, 200);
+        assert.isObject(res.body);
+        assert.isObject(res.body.machines);
         assert.equal(res.body.token.length, 64);
         tokenToUnregister = res.body.token;
       })
@@ -61,7 +63,8 @@ describe('mercurius', function() {
       .expect(function(res) {
         assert.equal(res.status, 200);
         assert.equal(res.body.token, tokenToUnregister);
-        assert(res.body.machines);
+        assert.equal(res.body.machines.machine.endpoint, 'endpoint');
+        assert.equal(res.body.machines.machine2.endpoint, 'endpoint');
       })
       .end(done);
   });
