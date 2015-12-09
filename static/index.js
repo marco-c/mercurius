@@ -147,12 +147,11 @@ window.onload = function() {
       machineId = makeId(20);
       localforage.setItem('machineId', machineId);
     }
-  }).
-  then(function() {
+  })
+  .then(function() {
     localforage.getItem('token')
     .then(function(token) {
       if (token) {
-        showSection(null);
         showSection('unregistrationForm');
         domToken.textContent = token;
         localforage.getItem('machineName')
