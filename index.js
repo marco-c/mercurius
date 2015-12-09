@@ -45,20 +45,12 @@ app.get('/', function(req, res) {
   res.render('index');
 });
 
-function sendMachines(req, res, token, machines) {
-  var content = {
-    token: token,
-    machines: machines
-  };
-  res.send(content);
-}
-
 app.get('/devices/:token', function(req, res) {
-  return showMachines(req, res, req.params.token);
+  return sendMachines(req, res, req.params.token);
 });
 
 // get machines for the token and send them along with the token
-function showMachines(req, res, token) {
+function sendMachines(req, res, token) {
   if (!token) {
     throw('No token provided');
   }
@@ -77,7 +69,10 @@ function showMachines(req, res, token) {
     .then(function(ids) {
       var promises = ids.map(machinePromise);
       Promise.all(promises)
-        .then(() => sendMachines(req, res, token, machines));
+        .then(() => res.send({
+          token: token,
+          machines: machines
+        }));
     });
 }
 
@@ -123,12 +118,12 @@ app.post('/register', function(req, res) {
         return redis.sismember(token, machineId)
         .then(function(isMember) {
           if (isMember) {
-            showMachines(req, res, token);
+            sendMachines(req, res, token);
             return;
           }
 
           return redis.sadd(token, req.body.machineId)
-          .then(() => showMachines(req, res, token));
+          .then(() => sendMachines(req, res, token));
         });
       });
     })

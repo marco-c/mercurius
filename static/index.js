@@ -113,7 +113,7 @@ function makeId(length) {
 // create DOM Element for a device
 function showMachine(machineId, device) {
   var li = document.createElement('li');
-  li.innerHTML = device.name || machineId;
+  li.textContent = device.name || machineId;
   domMachines.appendChild(li);
 }
 
