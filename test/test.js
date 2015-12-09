@@ -73,6 +73,7 @@ describe('mercurius', function() {
 
   it('successfully registers a machine even if it exists', function(done) {
     client.smembers(tokenToUnregister, function(err, machines) {
+      var startlength = machines.length;
       request(mercurius.app)
         .post('/register')
         .send({
@@ -84,8 +85,9 @@ describe('mercurius', function() {
         .expect(function(res) {
           assert.equal(res.status, 200);
           assert.equal(res.body.token, tokenToUnregister);
+          assert.equal(res.body.machines.machine2.endpoint, 'endpoint2');
           client.smembers(tokenToUnregister, function(err, newmachines) {
-            assert.equal(newMachines.machine2.endpoint, 'endpoint2');
+            assert.equal(newmachines.length, startlength);
           });
         })
         .end(done);
