@@ -1,9 +1,11 @@
 var mercurius = require('../index.js');
 var request = require('supertest');
-var assert = require('chai').assert;
 var nock = require('nock');
-var should = require('chai').should();
+var chai = require('chai');
 var redis = require('redis');
+
+var assert = chai.assert;
+chai.should();
 
 var client = redis.createClient(process.env.REDISCLOUD_URL, {no_ready_check: true});
 
