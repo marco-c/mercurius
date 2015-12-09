@@ -67,6 +67,10 @@ function sendMachines(req, res, token) {
   }
   redis.smembers(token)
     .then(function(ids) {
+      if (ids.length === 0) {
+        res.sendStatus(404);
+        return;
+      }
       var promises = ids.map(machinePromise);
       Promise.all(promises)
         .then(() => res.send({
