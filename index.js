@@ -113,7 +113,8 @@ app.post('/register', function(req, res) {
         crypto.randomBytes(32, function(ex, buf) {
           resolve(buf.toString('hex'));
         });
-      }).then(function(token) {
+      })
+      .then(function(token) {
         // add to the token set only if not there already (multiple
         // notifications!)
         return redis.sismember(token, machineId)
