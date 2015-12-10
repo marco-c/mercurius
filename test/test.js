@@ -1,9 +1,11 @@
 var mercurius = require('../index.js');
 var request = require('supertest');
-var assert = require('assert');
 var nock = require('nock');
-var should = require('chai').should();
+var chai = require('chai');
 var redis = require('redis');
+
+var assert = chai.assert;
+chai.should();
 
 var client = redis.createClient(process.env.REDISCLOUD_URL, {no_ready_check: true});
 
@@ -21,7 +23,7 @@ describe('mercurius', function() {
           key: 'key',
         })
         .expect(function(res) {
-          token = res.text;
+          token = res.body.token;
         })
         .end(done);
     });
@@ -43,8 +45,10 @@ describe('mercurius', function() {
       })
       .expect(function(res) {
         assert.equal(res.status, 200);
-        assert.equal(res.text.length, 64);
-        tokenToUnregister = res.text;
+        assert.isObject(res.body);
+        assert.isObject(res.body.machines);
+        assert.equal(res.body.token.length, 64);
+        tokenToUnregister = res.body.token;
       })
       .end(done);
   });
@@ -60,31 +64,55 @@ describe('mercurius', function() {
       })
       .expect(function(res) {
         assert.equal(res.status, 200);
-        assert.equal(res.text, tokenToUnregister);
+        assert.equal(res.body.token, tokenToUnregister);
+        assert.equal(res.body.machines.machine.endpoint, 'endpoint');
+        assert.equal(res.body.machines.machine2.endpoint, 'endpoint');
       })
       .end(done);
   });
 
   it('successfully registers a machine even if it exists', function(done) {
     client.smembers(tokenToUnregister, function(err, machines) {
-      var startLength = machines.length;
+      var startlength = machines.length;
       request(mercurius.app)
         .post('/register')
         .send({
           token: tokenToUnregister,
           machineId: 'machine2',
-          endpoint: 'endpoint',
+          endpoint: 'endpoint2',
           key: 'key',
         })
         .expect(function(res) {
           assert.equal(res.status, 200);
-          assert.equal(res.text, tokenToUnregister);
-          client.smembers(tokenToUnregister, function(err, newmachines) {
-            assert.equal(newmachines.length, startlength);
-          });
+          assert.equal(res.body.token, tokenToUnregister);
+          assert.equal(res.body.machines.machine2.endpoint, 'endpoint2');
+          assert.equal(Object.keys(res.body.machines).length, startlength);
         })
         .end(done);
     });
+  });
+
+
+  it('successfully returnes all machines assigned to a token', function(done) {
+      request(mercurius.app)
+        .get('/devices/' + tokenToUnregister)
+        .send()
+        .expect(function(res) {
+          assert.equal(res.status, 200);
+          assert.isObject(res.body);
+          assert.equal(res.body.token, tokenToUnregister);
+          assert.isObject(res.body.machines);
+          assert.equal(res.body.machines.machine.endpoint, 'endpoint');
+          assert.equal(res.body.machines.machine2.endpoint, 'endpoint2');
+        })
+        .end(done);
+  });
+
+  it('returns 404 if requesting machines assigned to a non-existing token', function(done) {
+      request(mercurius.app)
+        .get('/devices/nonexisting')
+        .send()
+        .expect(404, done);
   });
 
   it('returns 404 if bad token provided', function(done) {

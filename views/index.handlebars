@@ -4,16 +4,17 @@
   <div id="registrationForm">
     <h2>Register machine.</h2> 
     <label for="tokenInput" id="tokenLabel">Provide your token: </label>
-    <input type="text" id="tokenInput" placeholder="ddskljhlewiue98323opjwhealkdjhcdp03e">
-    <p id="showTokenInput"><a href="#">I've got a token<a></p>
+    <input type="text" id="tokenInput" placeholder="ddskljhlewiue98323opjwhealkdjhcdp03e"></input>
+    <p id="showTokenInput"><a href="#">I've got a token</a></p>
     <label for="machineName">Name your device:</label>
-    <input type="text" id="machineName" autofocus>
+    <input type="text" id="machineName" autofocus></input>
     <button id="register">Register</button>
   </div>
   <div id="unregistrationForm">
-    <h2>You are now registered</h2> 
+    <h2>You are now registered: <span id="showMachineName"></span></h2> 
     <button id="unregister">Unregister</button>
-    <p>Your token is: <span id="token"></p>
+    <p>Your token is: <span id="token"></span></p>
+    <h3>Your devices:</h3>
     <ul id="machines"></ul>
   </div>
 </div>

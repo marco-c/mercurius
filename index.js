@@ -45,6 +45,38 @@ app.get('/', function(req, res) {
   res.render('index');
 });
 
+app.get('/devices/:token', function(req, res) {
+  return sendMachines(req, res, req.params.token);
+});
+
+// get machines for the token and send them along with the token
+function sendMachines(req, res, token) {
+  if (!token) {
+    throw new Error('No token provided');
+  }
+  var machines = {};
+  var machineId;
+  function machinePromise(machineId) {
+    return redis.hgetall(machineId)
+    .then(function(machine) {
+      machines[machineId] = machine;
+    });
+  }
+  redis.smembers(token)
+  .then(function(ids) {
+    if (ids.length === 0) {
+      res.sendStatus(404);
+      return;
+    }
+    var promises = ids.map(machinePromise);
+    Promise.all(promises)
+    .then(() => res.send({
+      token: token,
+      machines: machines
+    }));
+  });
+}
+
 // adds a new machine to a token set
 // creates a new token set if needed
 app.post('/register', function(req, res) {
@@ -68,8 +100,7 @@ app.post('/register', function(req, res) {
       key: req.body.key,
       name: req.body.name,
       active: true
-    })
-    .then(function() {
+    }).then(function() {
       // check if token provided
       return new Promise(function(resolve, reject) {
         if (req.body.token) {
@@ -82,18 +113,19 @@ app.post('/register', function(req, res) {
         crypto.randomBytes(32, function(ex, buf) {
           resolve(buf.toString('hex'));
         });
-      }).then(function(token) {
+      })
+      .then(function(token) {
         // add to the token set only if not there already (multiple
         // notifications!)
         return redis.sismember(token, machineId)
         .then(function(isMember) {
           if (isMember) {
-            res.send(token);
+            sendMachines(req, res, token);
             return;
           }
 
           return redis.sadd(token, req.body.machineId)
-          .then(() => res.send(token));
+          .then(() => sendMachines(req, res, token));
         });
       });
     })

@@ -21,7 +21,7 @@ describe('mercurius', function() {
           key: '',
         })
         .expect(function(res) {
-          token = res.text;
+          token = res.body.token;
         })
         .end(done);
     });
