@@ -11,14 +11,7 @@ self.addEventListener('push', function(event) {
           return null;
         }
 
-        return fetch('./getPayload', {
-          headers: {
-            'Content-type': 'application/json'
-          },
-          body: JSON.stringify({
-            token: token,
-          }),
-        })
+        return fetch('./getPayload/' + token)
         .then(function(response) {
           return response.json();
         });

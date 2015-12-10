@@ -29,10 +29,8 @@ describe('mercurius', function() {
 
   it('replies with 404 on `getPayload` if there\'s no payload available', function(done) {
     request(mercurius.app)
-      .get('/getPayload')
-      .send({
-        token: token,
-      })
+      .get('/getPayload/' + token)
+      .send()
       .expect(404, done);
   });
 
@@ -52,10 +50,8 @@ describe('mercurius', function() {
 
   it('replies with the payload encoded in JSON on `getPayload` if there\'s a payload available', function(done) {
     request(mercurius.app)
-      .get('/getPayload')
-      .send({
-        token: token,
-      })
+      .get('/getPayload/' + token)
+      .send()
       .expect(function(res) {
         assert.equal(res.status, 200);
         assert.equal(res.text, '"hello"');
@@ -65,10 +61,8 @@ describe('mercurius', function() {
 
   it('replies with the payload encoded in JSON on `getPayload` (doesn\'t remove the payload on `getPayload`)', function(done) {
     request(mercurius.app)
-      .get('/getPayload')
-      .send({
-        token: token,
-      })
+      .get('/getPayload/' + token)
+      .send()
       .expect(function(res) {
         assert.equal(res.status, 200);
         assert.equal(res.text, '"hello"');

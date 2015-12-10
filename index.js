@@ -312,8 +312,8 @@ app.post('/notify', function(req, res) {
   });
 });
 
-app.get('/getPayload', function(req, res) {
-  var hash = req.body.token + '-payload';
+app.get('/getPayload/:token', function(req, res) {
+  var hash = req.params.token + '-payload';
 
   redis.exists(hash)
   .then(function(exists) {
