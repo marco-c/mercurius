@@ -5,9 +5,23 @@ self.addEventListener('push', function(event) {
     if (event.data) {
       return Promise.resolve(event.data.json());
     } else {
-      return fetch('./getPayload')
-      .then(function(response) {
-        return response.json();
+      return localforage.getItem('token')
+      .then(function(token) {
+        if (!token) {
+          return null;
+        }
+
+        return fetch('./getPayload', {
+          headers: {
+            'Content-type': 'application/json'
+          },
+          body: JSON.stringify({
+            token: token,
+          }),
+        })
+        .then(function(response) {
+          return response.json();
+        });
       });
     }
   }
