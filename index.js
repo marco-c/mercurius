@@ -52,32 +52,29 @@ app.get('/devices/:token', function(req, res) {
 // get machines for the token and send them along with the token
 function sendMachines(req, res, token) {
   if (!token) {
-    throw('No token provided');
+    throw new Error('No token provided');
   }
   var machines = {};
   var machineId;
   function machinePromise(machineId) {
-    return new Promise(function(resolve, reject) {
-      redis.hgetall(machineId)
-        .then(function(machine) {
-          machines[machineId] = machine;
-          resolve();
-        });
+    return redis.hgetall(machineId)
+    .then(function(machine) {
+      machines[machineId] = machine;
     });
   }
   redis.smembers(token)
-    .then(function(ids) {
-      if (ids.length === 0) {
-        res.sendStatus(404);
-        return;
-      }
-      var promises = ids.map(machinePromise);
-      Promise.all(promises)
-        .then(() => res.send({
-          token: token,
-          machines: machines
-        }));
-    });
+  .then(function(ids) {
+    if (ids.length === 0) {
+      res.sendStatus(404);
+      return;
+    }
+    var promises = ids.map(machinePromise);
+    Promise.all(promises)
+    .then(() => res.send({
+      token: token,
+      machines: machines
+    }));
+  });
 }
 
 // adds a new machine to a token set
