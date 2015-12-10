@@ -86,9 +86,7 @@ describe('mercurius', function() {
           assert.equal(res.status, 200);
           assert.equal(res.body.token, tokenToUnregister);
           assert.equal(res.body.machines.machine2.endpoint, 'endpoint2');
-          client.smembers(tokenToUnregister, function(err, newmachines) {
-            assert.equal(newmachines.length, startlength);
-          });
+          assert.equal(Object.keys(res.body.machines).length, startlength);
         })
         .end(done);
     });
