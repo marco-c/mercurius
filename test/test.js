@@ -217,6 +217,20 @@ describe('mercurius', function() {
       .expect(200, done);
   });
 
+  it('sends a notification with payload to a registered user', function(done) {
+    nock('https://localhost:50005')
+    .post('/')
+    .reply(201);
+
+    request(mercurius.app)
+      .post('/notify')
+      .send({
+        token: token,
+        payload: 'hello',
+      })
+      .expect(200, done);
+  });
+
   it('updates the registration successfully on `updateRegistration`', function(done) {
     nock('https://localhost:50007')
     .post('/')
