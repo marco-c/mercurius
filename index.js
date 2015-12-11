@@ -349,7 +349,7 @@ app.get('/generateBarcode/:token', function(req, res) {
     text: req.params.token,
     includetext: true,
     textxalign: 'center',
-	}, function (err, png) {
+  }, function (err, png) {
     if (err) {
       console.error(err);
       res.sendStatus(500);
