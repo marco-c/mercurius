@@ -197,20 +197,18 @@ app.post('/unregisterMachine', function(req, res) {
         return redis.srem(token, machineId)
         .then(function() {
           // send notification to an endpoint to unregister itself
-          var payload = {
+          var payload = JSON.stringify({
             title: 'unregister',
             body: 'called from unregisterMachine'
-          };
+          });
           var promises = [];
-          console.log(registration);
-          console.log(payload);
           if (registration.endpoint.indexOf('https://android.googleapis.com/gcm/send') === 0) {
             promises.push(
                 redis.set(token + '-payload', payload)
                 .then(webPush.sendNotification(registration.endpoint)));
           } else {
             promises.push(
-                webPush.sendNotification(registration.endpoint, undefined, registration.key, JSON.stringify(payload)));
+                webPush.sendNotification(registration.endpoint, undefined, registration.key, payload));
           }
           promises.push(sendMachines(req, res, token));
           return Promise.all(promises);

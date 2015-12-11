@@ -123,17 +123,14 @@ function showMachine(mId, device) {
   li.textContent = (device.name || mId) + ' ';
   a.textContent = '[x]';
   a.onclick = function() {
-    var thisMachineId = mId;
-    return function() {
-      unregisterMachine(thisMachineId)
-      .then(function(response) {
-        response.json()
-        .then(function(body) {
-          showMachines(body.machines);
-        });
+    unregisterMachine(mId)
+    .then(function(response) {
+      response.json()
+      .then(function(body) {
+        showMachines(body.machines);
       });
-    };
-  }();
+    });
+  };
   li.appendChild(a);
   domMachines.appendChild(li);
 }
