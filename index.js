@@ -64,7 +64,7 @@ function sendMachines(req, res, token) {
     });
   }
 
-  redis.smembers(token)
+  return redis.smembers(token)
   .then(function(ids) {
     if (ids.length === 0) {
       res.sendStatus(404);
@@ -197,18 +197,20 @@ app.post('/unregisterMachine', function(req, res) {
         return redis.srem(token, machineId)
         .then(function() {
           // send notification to an endpoint to unregister itself
-          var payload = JSON.stringify({
+          var payload = {
             title: 'unregister',
             body: 'called from unregisterMachine'
-          });
+          };
           var promises = [];
+          console.log(registration);
+          console.log(payload);
           if (registration.endpoint.indexOf('https://android.googleapis.com/gcm/send') === 0) {
             promises.push(
                 redis.set(token + '-payload', payload)
-                .then(webPush.sendNotification(registration.endpoint, undefined)));
+                .then(webPush.sendNotification(registration.endpoint)));
           } else {
             promises.push(
-                webPush.sendNotification(registration.endpoint, undefined, registration.key, payload));
+                webPush.sendNotification(registration.endpoint, undefined, registration.key, JSON.stringify(payload)));
           }
           promises.push(sendMachines(req, res, token));
           return Promise.all(promises);
