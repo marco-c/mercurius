@@ -115,7 +115,7 @@ app.post('/register', function(req, res) {
         }
         // creating a new token
         console.log('DEBUG: Creating a new token for machine ' + machineId);
-        crypto.randomBytes(32, function(ex, buf) {
+        crypto.randomBytes(8, function(ex, buf) {
           resolve(buf.toString('hex'));
         });
       })
