@@ -8,6 +8,7 @@ var domTokenInput = document.getElementById('tokenInput');
 var domTokenLabel = document.getElementById('tokenLabel');
 var domMachineName = document.getElementById('machineName');
 var domToken = document.getElementById('token');
+var domTokenBarcode = document.getElementById('tokenBarcode');
 var domRegister = document.getElementById('register');
 var domUnregister = document.getElementById('unregister');
 var domMachines = document.getElementById('machines');
@@ -60,6 +61,7 @@ function register() {
             localforage.setItem('machineName', machineName);
             domShowMachineName.textContent = machineName || machineId;
             domToken.textContent = token;
+            domTokenBarcode.src = 'generateBarcode/' + token;
             showSection('unregistrationForm');
             showMachines(body.machines);
           } else {
@@ -97,6 +99,7 @@ domUnregister.onclick = function() {
       }),
     }).then(function(response) {
       domToken.textContent = '';
+      domTokenBarcode.src = '';
       showSection('registrationForm');
       localforage.removeItem('token');
     });
@@ -154,6 +157,7 @@ window.onload = function() {
       if (token) {
         showSection('unregistrationForm');
         domToken.textContent = token;
+        domTokenBarcode.src = 'generateBarcode/' + token;
         localforage.getItem('machineName')
         .then(function(mName) {
           machineName = mName;
