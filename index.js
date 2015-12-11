@@ -202,17 +202,18 @@ app.post('/unregisterMachine', function(req, res) {
             title: 'unregister',
             body: 'called from unregisterMachine'
           });
-          var promises = [];
+
+          var promise;
+
           if (registration.endpoint.indexOf('https://android.googleapis.com/gcm/send') === 0) {
-            promises.push(
-                redis.set(token + '-payload', payload)
-                .then(webPush.sendNotification(registration.endpoint)));
+            promise = redis.set(token + '-payload', payload)
+            .then(webPush.sendNotification(registration.endpoint));
           } else {
-            promises.push(
-                webPush.sendNotification(registration.endpoint, undefined, registration.key, payload));
+            promise = webPush.sendNotification(registration.endpoint, undefined, registration.key, payload);
           }
-          promises.push(sendMachines(req, res, token));
-          return Promise.all(promises);
+
+          return promise
+          .then(() => sendMachines(req, res, token));
         });
       });
     });

@@ -47,7 +47,7 @@ describe('mercurius', function() {
       .post('/register')
       .send({
         machineId: 'machine',
-        endpoint: 'http://localhost:5005',
+        endpoint: 'https://localhost:50008',
         key: urlBase64.encode(userPublicKey),
       })
       .expect(function(res) {
@@ -66,14 +66,14 @@ describe('mercurius', function() {
       .send({
         token: tokenToUnregister,
         machineId: 'machine2',
-        endpoint: 'http://localhost:5005',
+        endpoint: 'endpoint',
         key: urlBase64.encode(userPublicKey),
       })
       .expect(function(res) {
         assert.equal(res.status, 200);
         assert.equal(res.body.token, tokenToUnregister);
-        assert.equal(res.body.machines.machine.endpoint, 'http://localhost:5005');
-        assert.equal(res.body.machines.machine2.endpoint, 'http://localhost:5005');
+        assert.equal(res.body.machines.machine.endpoint, 'https://localhost:50008');
+        assert.equal(res.body.machines.machine2.endpoint, 'endpoint');
       })
       .end(done);
   });
@@ -86,13 +86,13 @@ describe('mercurius', function() {
         .send({
           token: tokenToUnregister,
           machineId: 'machine2',
-          endpoint: 'http://localhost:5005',
+          endpoint: 'endpoint2',
           key: urlBase64.encode(userPublicKey),
         })
         .expect(function(res) {
           assert.equal(res.status, 200);
           assert.equal(res.body.token, tokenToUnregister);
-          assert.equal(res.body.machines.machine2.endpoint, 'http://localhost:5005');
+          assert.equal(res.body.machines.machine2.endpoint, 'endpoint2');
           assert.equal(Object.keys(res.body.machines).length, startlength);
         })
         .end(done);
@@ -109,8 +109,8 @@ describe('mercurius', function() {
           assert.isObject(res.body);
           assert.equal(res.body.token, tokenToUnregister);
           assert.isObject(res.body.machines);
-          assert.equal(res.body.machines.machine.endpoint, 'http://localhost:5005');
-          assert.equal(res.body.machines.machine2.endpoint, 'http://localhost:5005');
+          assert.equal(res.body.machines.machine.endpoint, 'https://localhost:50008');
+          assert.equal(res.body.machines.machine2.endpoint, 'endpoint2');
         })
         .end(done);
   });
@@ -128,14 +128,14 @@ describe('mercurius', function() {
       .send({
         token: 'notexisting',
         machineId: 'machine of a not existing token',
-        endpoint: 'http://localhost:5005',
+        endpoint: 'endpoint',
         key: urlBase64.encode(userPublicKey),
       })
       .expect(404, done);
   });
 
   it('successfully unregisters a machine', function(done) {
-    nock('https://localhost:5005')
+    nock('https://localhost:50008')
     .post('/')
     .reply(201);
 
@@ -264,7 +264,7 @@ describe('mercurius', function() {
       .send({
         token: 'token_inesistente',
         machineId: 'machineX',
-        endpoint: 'http://localhost:5005',
+        endpoint: 'endpoint',
         key: urlBase64.encode(userPublicKey),
       })
       .expect(404, done);
@@ -277,7 +277,7 @@ describe('mercurius', function() {
         .send({
           token: token,
           machineId: 'nonexistingmachine',
-          endpoint: 'http://localhost:5005',
+          endpoint: 'endpoint',
           key: urlBase64.encode(userPublicKey),
         })
         .expect(404, done);
