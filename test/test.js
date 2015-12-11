@@ -47,7 +47,7 @@ describe('mercurius', function() {
       .post('/register')
       .send({
         machineId: 'machine',
-        endpoint: 'endpoint',
+        endpoint: 'https://localhost:50008',
         key: urlBase64.encode(userPublicKey),
       })
       .expect(function(res) {
@@ -72,7 +72,7 @@ describe('mercurius', function() {
       .expect(function(res) {
         assert.equal(res.status, 200);
         assert.equal(res.body.token, tokenToUnregister);
-        assert.equal(res.body.machines.machine.endpoint, 'endpoint');
+        assert.equal(res.body.machines.machine.endpoint, 'https://localhost:50008');
         assert.equal(res.body.machines.machine2.endpoint, 'endpoint');
       })
       .end(done);
@@ -109,7 +109,7 @@ describe('mercurius', function() {
           assert.isObject(res.body);
           assert.equal(res.body.token, tokenToUnregister);
           assert.isObject(res.body.machines);
-          assert.equal(res.body.machines.machine.endpoint, 'endpoint');
+          assert.equal(res.body.machines.machine.endpoint, 'https://localhost:50008');
           assert.equal(res.body.machines.machine2.endpoint, 'endpoint2');
         })
         .end(done);
@@ -134,7 +134,11 @@ describe('mercurius', function() {
       .expect(404, done);
   });
 
-  it('successfully unregisters machines', function(done) {
+  it('successfully unregisters a machine', function(done) {
+    nock('https://localhost:50008')
+    .post('/')
+    .reply(201);
+
     request(mercurius.app)
       .post('/unregisterMachine')
       .send({

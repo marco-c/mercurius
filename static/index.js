@@ -87,24 +87,30 @@ function showSection(section) {
 }
 
 domUnregister.onclick = function() {
-  localforage.getItem('token').then(function(token) {
-    fetch('./unregisterMachine', {
+  unregisterMachine(machineId)
+  .then(function(response) {
+    domToken.textContent = '';
+    domTokenBarcode.src = '';
+    showSection('registrationForm');
+    localforage.removeItem('token');
+  });
+};
+
+function unregisterMachine(mId) {
+  return localforage.getItem('token')
+  .then(function(token) {
+    return fetch('./unregisterMachine', {
       method: 'post',
       headers: {
         'Content-type': 'application/json'
       },
       body: JSON.stringify({
         token: token,
-        machineId: machineId
+        machineId: mId
       }),
-    }).then(function(response) {
-      domToken.textContent = '';
-      domTokenBarcode.src = '';
-      showSection('registrationForm');
-      localforage.removeItem('token');
     });
   });
-};
+}
 
 // generate a random string (default: 40)
 function makeId(length) {
@@ -114,9 +120,21 @@ function makeId(length) {
 }
 
 // create DOM Element for a device
-function showMachine(machineId, device) {
+function showMachine(mId, device) {
   var li = document.createElement('li');
-  li.textContent = device.name || machineId;
+  var a = document.createElement('a');
+  li.textContent = (device.name || mId) + ' ';
+  a.textContent = '[x]';
+  a.onclick = function() {
+    unregisterMachine(mId)
+    .then(function(response) {
+      response.json()
+      .then(function(body) {
+        showMachines(body.machines);
+      });
+    });
+  };
+  li.appendChild(a);
   domMachines.appendChild(li);
 }
 

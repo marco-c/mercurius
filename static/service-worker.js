@@ -24,7 +24,15 @@ self.addEventListener('push', function(event) {
     .then(function(data) {
       var title = data ? data.title : 'Mercurius';
       var body = data ? data.body : 'Notification';
-
+      if (title === 'unregister') {
+        return localforage.removeItem('token')
+        .then(function() {
+          self.registration.pushManager.getSubscription()
+          .then(function(subscription) {
+            subscription.unsubscribe();
+          });
+        });
+      }
       return self.registration.showNotification(title, {
         body: body,
       });

@@ -65,7 +65,7 @@ function sendMachines(req, res, token) {
     });
   }
 
-  redis.smembers(token)
+  return redis.smembers(token)
   .then(function(ids) {
     if (ids.length === 0) {
       res.sendStatus(404);
@@ -186,9 +186,9 @@ app.post('/unregisterMachine', function(req, res) {
       return;
     }
 
-    return redis.exists(machineId)
-    .then(function(result) {
-      if (!result) {
+    return redis.hgetall(machineId)
+    .then(function(registration) {
+      if (!registration) {
         res.sendStatus(404);
         return;
       }
@@ -196,7 +196,25 @@ app.post('/unregisterMachine', function(req, res) {
       return redis.del(machineId)
       .then(function() {
         return redis.srem(token, machineId)
-        .then(() => res.sendStatus(200));
+        .then(function() {
+          // send notification to an endpoint to unregister itself
+          var payload = JSON.stringify({
+            title: 'unregister',
+            body: 'called from unregisterMachine'
+          });
+
+          var promise;
+
+          if (registration.endpoint.indexOf('https://android.googleapis.com/gcm/send') === 0) {
+            promise = redis.set(token + '-payload', payload)
+            .then(webPush.sendNotification(registration.endpoint));
+          } else {
+            promise = webPush.sendNotification(registration.endpoint, undefined, registration.key, payload);
+          }
+
+          return promise
+          .then(() => sendMachines(req, res, token));
+        });
       });
     });
   })
