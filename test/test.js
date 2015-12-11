@@ -2,12 +2,19 @@ var mercurius = require('../index.js');
 var request = require('supertest');
 var nock = require('nock');
 var chai = require('chai');
+var crypto = require('crypto');
+var urlBase64 = require('urlsafe-base64');
 var redis = require('redis');
 
 var assert = chai.assert;
 chai.should();
 
 var client = redis.createClient(process.env.REDISCLOUD_URL, {no_ready_check: true});
+
+var userCurve = crypto.createECDH('prime256v1');
+
+var userPublicKey = userCurve.generateKeys();
+var userPrivateKey = userCurve.getPrivateKey();
 
 describe('mercurius', function() {
   var token;
@@ -20,7 +27,7 @@ describe('mercurius', function() {
         .send({
           machineId: 'machineX',
           endpoint: 'https://localhost:50005',
-          key: 'key',
+          key: urlBase64.encode(userPublicKey),
         })
         .expect(function(res) {
           token = res.body.token;
@@ -41,7 +48,7 @@ describe('mercurius', function() {
       .send({
         machineId: 'machine',
         endpoint: 'http://localhost:5005',
-        key: 'key',
+        key: urlBase64.encode(userPublicKey),
       })
       .expect(function(res) {
         assert.equal(res.status, 200);
@@ -60,7 +67,7 @@ describe('mercurius', function() {
         token: tokenToUnregister,
         machineId: 'machine2',
         endpoint: 'http://localhost:5005',
-        key: 'key',
+        key: urlBase64.encode(userPublicKey),
       })
       .expect(function(res) {
         assert.equal(res.status, 200);
@@ -80,7 +87,7 @@ describe('mercurius', function() {
           token: tokenToUnregister,
           machineId: 'machine2',
           endpoint: 'http://localhost:5005',
-          key: 'key',
+          key: urlBase64.encode(userPublicKey),
         })
         .expect(function(res) {
           assert.equal(res.status, 200);
@@ -122,7 +129,7 @@ describe('mercurius', function() {
         token: 'notexisting',
         machineId: 'machine of a not existing token',
         endpoint: 'http://localhost:5005',
-        key: 'key',
+        key: urlBase64.encode(userPublicKey),
       })
       .expect(404, done);
   });
@@ -214,6 +221,20 @@ describe('mercurius', function() {
       .expect(200, done);
   });
 
+  it('sends a notification with payload to a registered user', function(done) {
+    nock('https://localhost:50005')
+    .post('/')
+    .reply(201);
+
+    request(mercurius.app)
+      .post('/notify')
+      .send({
+        token: token,
+        payload: 'hello',
+      })
+      .expect(200, done);
+  });
+
   it('updates the registration successfully on `updateRegistration`', function(done) {
     nock('https://localhost:50007')
     .post('/')
@@ -225,7 +246,7 @@ describe('mercurius', function() {
         token: token,
         machineId: 'machineX',
         endpoint: 'https://localhost:50007',
-        key: 'newKey',
+        key: urlBase64.encode(userPublicKey),
       })
       .expect(200, function() {
         request(mercurius.app)
@@ -244,7 +265,7 @@ describe('mercurius', function() {
         token: 'token_inesistente',
         machineId: 'machineX',
         endpoint: 'http://localhost:5005',
-        key: 'key',
+        key: urlBase64.encode(userPublicKey),
       })
       .expect(404, done);
   });
@@ -257,7 +278,7 @@ describe('mercurius', function() {
           token: token,
           machineId: 'nonexistingmachine',
           endpoint: 'http://localhost:5005',
-          key: 'key',
+          key: urlBase64.encode(userPublicKey),
         })
         .expect(404, done);
     });
