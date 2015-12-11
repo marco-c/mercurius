@@ -54,7 +54,7 @@ describe('mercurius', function() {
         assert.equal(res.status, 200);
         assert.isObject(res.body);
         assert.isObject(res.body.machines);
-        assert.equal(res.body.token.length, 64);
+        assert.equal(res.body.token.length, 16);
         tokenToUnregister = res.body.token;
       })
       .end(done);
