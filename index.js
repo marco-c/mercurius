@@ -181,9 +181,10 @@ app.post('/unregisterMachine', function(req, res) {
       return;
     }
 
-    return redis.exists(machineId)
-    .then(function(result) {
-      if (!result) {
+    return redis.hgetall(machineId)
+    .then(function(registration) {
+      // XXX: check if 404
+      if (!registration) {
         res.sendStatus(404);
         return;
       }
@@ -191,7 +192,20 @@ app.post('/unregisterMachine', function(req, res) {
       return redis.del(machineId)
       .then(function() {
         return redis.srem(token, machineId)
-        .then(() => res.sendStatus(200));
+        .then(function() {
+          // send notification to an endpoint to unregister itself
+          var payload = JSON.stringify({
+            title: 'unregister',
+            body: 'called from unregisterMachine'
+          });
+          if (registration.endpoint.indexOf('https://android.googleapis.com/gcm/send') === 0) {
+            redis.set(token + '-payload', payload)
+            .then(() => webPush.sendNotification(registration.endpoint, undefined));
+          } else {
+            webPush.sendNotification(registration.endpoint, undefined, registration.key, payload);
+          }
+          return sendMachines(req, res, token);
+        });
       });
     });
   })
