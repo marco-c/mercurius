@@ -125,8 +125,7 @@ app.post('/register', function(req, res) {
         return redis.sismember(token, machineId)
         .then(function(isMember) {
           if (isMember) {
-            sendMachines(req, res, token);
-            return;
+            return sendMachines(req, res, token);
           }
 
           return redis.sadd(token, req.body.machineId)
