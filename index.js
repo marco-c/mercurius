@@ -171,6 +171,17 @@ app.post('/unregister', function(req, res) {
   });
 });
 
+function sendNotification(token, registration, payload, ttl) {
+  console.log('DEBUG: sending notification to: ' + registration.endpoint);
+
+  if (registration.endpoint.indexOf('https://android.googleapis.com/gcm/send') === 0) {
+    return redis.set(token + '-payload', payload)
+    .then(webPush.sendNotification(registration.endpoint, ttl));
+  }
+
+  return webPush.sendNotification(registration.endpoint, ttl, registration.key, payload);
+}
+
 // remove machine hash and its id from token set
 app.post('/unregisterMachine', function(req, res) {
   var token = req.body.token;
@@ -197,21 +208,13 @@ app.post('/unregisterMachine', function(req, res) {
         return redis.srem(token, machineId)
         .then(function() {
           // send notification to an endpoint to unregister itself
+
           var payload = JSON.stringify({
             title: 'unregister',
             body: 'called from unregisterMachine'
           });
 
-          var promise;
-
-          if (registration.endpoint.indexOf('https://android.googleapis.com/gcm/send') === 0) {
-            promise = redis.set(token + '-payload', payload)
-            .then(webPush.sendNotification(registration.endpoint));
-          } else {
-            promise = webPush.sendNotification(registration.endpoint, undefined, registration.key, payload);
-          }
-
-          return promise
+          return sendNotification(token, registration, payload)
           .then(() => sendMachines(req, res, token));
         });
       });
@@ -312,16 +315,7 @@ app.post('/notify', function(req, res) {
 
       var promises = machines.map(function(machine) {
         return redis.hgetall(machine)
-        .then(function(registration) {
-          console.log('DEBUG: sending notification to: ' + registration.endpoint);
-
-          if (registration.endpoint.indexOf('https://android.googleapis.com/gcm/send') === 0) {
-            return redis.set(token + '-payload', JSON.stringify(req.body.payload))
-            .then(() => webPush.sendNotification(registration.endpoint, req.body.ttl));
-          } else {
-            return webPush.sendNotification(registration.endpoint, req.body.ttl, registration.key, JSON.stringify(req.body.payload));
-          }
-        });
+        .then(registration => sendNotification(token, registration, JSON.stringify(req.body.payload), req.body.ttl));
       });
 
       return Promise.all(promises)
