@@ -338,22 +338,14 @@ app.post('/notify', function(req, res) {
 app.get('/getPayload/:token', function(req, res) {
   var hash = req.params.token + '-payload';
 
-  redis.exists(hash)
-  .then(function(exists) {
-    if (!exists) {
+  redis.get(hash)
+  .then(function(payload) {
+    if (!payload) {
       res.sendStatus(404);
       return;
     }
 
-    return redis.get(hash)
-    .then(function(payload) {
-      if (!payload) {
-        res.sendStatus(404);
-        return;
-      }
-
-      res.send(payload);
-    });
+    res.send(payload);
   })
   .catch(function(err) {
     console.error(err);
