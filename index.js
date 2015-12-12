@@ -52,10 +52,6 @@ app.get('/devices/:token', function(req, res) {
 
 // get machines for the token and send them along with the token
 function sendMachines(req, res, token) {
-  if (!token) {
-    throw new Error('No token provided');
-  }
-
   var machines = {};
   var machineId;
   function machinePromise(machineId) {
