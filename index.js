@@ -88,6 +88,15 @@ function randomBytes(len) {
   });
 }
 
+function handleError(res, err) {
+  if (err && err.message === "Not Found") {
+    res.sendStatus(404);
+  } else {
+    console.error(err);
+    res.sendStatus(500);
+  }
+}
+
 // adds a new machine to a token set
 // creates a new token set if needed
 app.post('/register', function(req, res) {
@@ -108,7 +117,8 @@ app.post('/register', function(req, res) {
     getTokenPromise = redis.exists(token)
     .then(function(exists) {
       if (!exists) {
-        throw new Error('Attempt to use a non existing token');
+        console.log('DEBUG: Attempt to use a non existing token: ' + token);
+        throw new Error('Not Found');
       }
     });
   }
@@ -131,15 +141,7 @@ app.post('/register', function(req, res) {
     }
   })
   .then(() => sendMachines(res, token))
-  .catch(function(err) {
-    console.error(err);
-
-    if (err.message === 'Attempt to use a non existing token') {
-      res.sendStatus(404);
-    } else {
-      res.sendStatus(500);
-    }
-  });
+  .catch(err => handleError(res, err));
 });
 
 // remove entire token set and all its machines
@@ -149,8 +151,7 @@ app.post('/unregister', function(req, res) {
   redis.exists(token)
   .then(function(result) {
     if (!result) {
-      res.sendStatus(404);
-      return;
+      throw new Error('Not Found');
     }
 
     return redis.smembers(token);
@@ -158,10 +159,7 @@ app.post('/unregister', function(req, res) {
   .then(machines => Promise.all(machines.map(machine => redis.del(machine))))
   .then(() => redis.del(token))
   .then(() => res.sendStatus(200))
-  .catch(function(err) {
-    console.error(err);
-    res.sendStatus(500);
-  });
+  .catch(err => handleError(res, err));
 });
 
 function sendNotification(token, registration, payload, ttl) {
@@ -185,16 +183,14 @@ app.post('/unregisterMachine', function(req, res) {
   redis.exists(token)
   .then(function(result) {
     if (!result) {
-      res.sendStatus(404);
-      return;
+      throw new Error('Not Found');
     }
 
     return redis.hgetall(machineId);
   })
   .then(function(registration) {
     if (!registration) {
-      res.sendStatus(404);
-      return;
+      throw new Error('Not Found');
     }
 
     return redis.del(machineId)
@@ -211,10 +207,7 @@ app.post('/unregisterMachine', function(req, res) {
     });
   })
   .then(() => sendMachines(res, token))
-  .catch(function(err) {
-    console.error(err);
-    res.sendStatus(500);
-  });
+  .catch(err => handleError(res, err));
 });
 
 
@@ -228,16 +221,14 @@ app.post('/updateRegistration', function(req, res) {
   redis.sismember(token, machineId)
   .then(function(isMember) {
     if (!isMember) {
-      res.sendStatus(404);
-      return;
+      throw new Error('Not Found');
     }
 
     return redis.exists(machineId);
   })
   .then(function(exists) {
     if (!exists) {
-      res.sendStatus(404);
-      return;
+      throw new Error('Not Found');
     }
 
     return redis.hmset(machineId, {
@@ -246,10 +237,7 @@ app.post('/updateRegistration', function(req, res) {
     });
   })
   .then(() => res.sendStatus(200))
-  .catch(function(err) {
-    console.error(err);
-    res.sendStatus(500);
-  });
+  .catch(err => handleError(res, err));
 });
 
 // used only if metadata updated
@@ -261,16 +249,14 @@ app.post('/updateMeta', function(req, res) {
   redis.sismember(token, machineId)
   .then(function(isMember) {
     if (!isMember) {
-      res.sendStatus(404);
-      return;
+      throw new Error('Not Found');
     }
 
     return redis.exists(machineId);
   })
   .then(function(exists) {
     if (!exists) {
-      res.sendStatus(404);
-      return;
+      throw new Error('Not Found');
     }
 
     return redis.hmset(machineId, {
@@ -279,10 +265,7 @@ app.post('/updateMeta', function(req, res) {
     });
   })
   .then(() => res.sendStatus(200))
-  .catch(function(err) {
-    console.error(err);
-    res.sendStatus(500);
-  });
+  .catch(err => handleError(res, err));
 });
 
 app.post('/notify', function(req, res) {
@@ -291,8 +274,7 @@ app.post('/notify', function(req, res) {
   redis.exists(token)
   .then(function(exists) {
     if (!exists) {
-      res.sendStatus(404);
-      return;
+      throw new Error('Not Found');
     }
 
     return redis.smembers(token);
@@ -313,10 +295,7 @@ app.post('/notify', function(req, res) {
     return Promise.all(promises);
   })
   .then(() => res.sendStatus(200))
-  .catch(function(err) {
-    console.error('Error in sending notification: ' + err);
-    res.sendStatus(500);
-  });
+  .catch(err => handleError(res, err));
 });
 
 app.get('/getPayload/:token', function(req, res) {
@@ -325,16 +304,12 @@ app.get('/getPayload/:token', function(req, res) {
   redis.get(hash)
   .then(function(payload) {
     if (!payload) {
-      res.sendStatus(404);
-      return;
+      throw new Error('Not Found');
     }
 
     res.send(payload);
   })
-  .catch(function(err) {
-    console.error(err);
-    res.sendStatus(500);
-  });
+  .catch(err => handleError(res, err));
 });
 
 app.get('/generateBarcode/:token', function(req, res) {
