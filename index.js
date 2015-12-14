@@ -83,51 +83,44 @@ app.post('/register', function(req, res) {
   var machineId = req.body.machineId;
 
   new Promise(function(resolve, reject) {
+    // creating a new token
     if (!req.body.token) {
-      return resolve();
+      console.log('DEBUG: Creating a new token for machine ' + machineId);
+
+      crypto.randomBytes(8, function(ex, buf) {
+        resolve(buf.toString('hex'));
+      });
+
+      return;
     }
 
-    redis.exists(req.body.token).then(function(result) {
+    console.log('DEBUG: Registering machine ' + machineId + ' using existing token');
+
+    redis.exists(req.body.token)
+    .then(function(result) {
       if (!result) {
         reject();
       } else {
-        resolve();
+        resolve(req.body.token);
       }
     }, reject);
-  }).then(function() {
+  })
+  .then(function(token) {
     redis.hmset(machineId, {
       endpoint: req.body.endpoint,
       key: req.body.key,
       name: req.body.name,
       active: true
     })
-    .then(function() {
-      // check if token provided
-      return new Promise(function(resolve, reject) {
-        if (req.body.token) {
-          console.log('DEBUG: Registering machine ' + machineId + ' using existing token');
-          resolve(req.body.token);
-          return;
-        }
-
-        // creating a new token
-        console.log('DEBUG: Creating a new token for machine ' + machineId);
-        crypto.randomBytes(8, function(ex, buf) {
-          resolve(buf.toString('hex'));
-        });
-      });
-    })
-    .then(function(token) {
+    .then(() => redis.sismember(token, machineId))
+    .then(function(isMember) {
       // add to the token set only if not there already (multiple
       // notifications!)
-      return redis.sismember(token, machineId)
-      .then(function(isMember) {
-        if (!isMember) {
-          return redis.sadd(token, req.body.machineId);
-        }
-      })
-      .then(() => sendMachines(req, res, token));
+      if (!isMember) {
+        return redis.sadd(token, req.body.machineId);
+      }
     })
+    .then(() => sendMachines(req, res, token))
     .catch(function(err) {
       console.error(err);
       res.sendStatus(500);
