@@ -2,6 +2,7 @@ var mercurius = require('../index.js');
 var request = require('supertest');
 var assert = require('assert');
 var fs = require('fs');
+var bwipjs = require('bwip-js');
 
 describe('mercurius generateBarcode', function() {
   var token;
@@ -22,6 +23,12 @@ describe('mercurius generateBarcode', function() {
     });
   });
 
+  var origToBuffer = bwipjs.toBuffer;
+  afterEach(function() {
+    bwipjs.toBuffer = origToBuffer;
+  });
+
+
   it('generates the correct barcode', function(done) {
     request(mercurius.app)
     .get('/generateBarcode/Marco')
@@ -32,5 +39,16 @@ describe('mercurius generateBarcode', function() {
       assert(res.body.equals(expected));
     })
     .end(done);
+  });
+
+  it('returns 500 when failing to generate the barcode', function(done) {
+    bwipjs.toBuffer = function(obj, cb) {
+      cb(new Error('Fake error.'));
+    };
+
+    request(mercurius.app)
+    .get('/generateBarcode/Marco')
+    .send()
+    .expect(500, done);
   });
 });
