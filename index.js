@@ -192,28 +192,29 @@ app.post('/unregisterMachine', function(req, res) {
       return;
     }
 
-    return redis.hgetall(machineId)
-    .then(function(registration) {
-      if (!registration) {
-        res.sendStatus(404);
-        return;
-      }
-
-      return redis.del(machineId)
-      .then(() => redis.srem(token, machineId))
-      .then(function() {
-        // send notification to an endpoint to unregister itself
-
-        var payload = JSON.stringify({
-          title: 'unregister',
-          body: 'called from unregisterMachine'
-        });
-
-        return sendNotification(token, registration, payload);
-      })
-      .then(() => sendMachines(req, res, token));
-    });
+    return redis.hgetall(machineId);
   })
+  .then(function(registration) {
+    if (!registration) {
+      res.sendStatus(404);
+      return;
+    }
+
+    return redis.del(machineId)
+    .then(() => redis.srem(token, machineId))
+    ;
+  })
+  .then(function() {
+    // send notification to an endpoint to unregister itself
+
+    var payload = JSON.stringify({
+      title: 'unregister',
+      body: 'called from unregisterMachine'
+    });
+
+    return sendNotification(token, registration, payload);
+  })
+  .then(() => sendMachines(req, res, token))
   .catch(function(err) {
     console.error(err);
     res.sendStatus(500);
