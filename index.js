@@ -150,17 +150,17 @@ app.post('/unregister', function(req, res) {
       return;
     }
 
-    return redis.smembers(token)
-    .then(function(machines) {
-      var promises = machines.map(function(machine) {
-        return redis.del(machine);
-      });
-
-      return Promise.all(promises)
-      .then(() => redis.del(token))
-      .then(() => res.sendStatus(200));
-    });
+    return redis.smembers(token);
   })
+  .then(function(machines) {
+    var promises = machines.map(function(machine) {
+      return redis.del(machine);
+    });
+
+    return Promise.all(promises);
+  })
+  .then(() => redis.del(token))
+  .then(() => res.sendStatus(200))
   .catch(function(err) {
     console.error(err);
     res.sendStatus(500);
