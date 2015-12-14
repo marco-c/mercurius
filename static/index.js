@@ -22,24 +22,31 @@ domShowTokenInput.onclick = function() {
 domMachineName.placeholder = window.navigator.userAgent;
 
 function register() {
-  localforage.getItem('token').then(function(token) {
+  localforage.getItem('token')
+  .then(function(token) {
     if (token) {
       return;
     }
 
-    navigator.serviceWorker.ready.then(function(registration) {
-      return registration.pushManager.getSubscription().then(function(subscription) {
+    navigator.serviceWorker.ready
+    .then(function(registration) {
+      return registration.pushManager.getSubscription()
+      .then(function(subscription) {
         if (subscription) {
           return subscription;
         }
 
-        return registration.pushManager.subscribe({ userVisibleOnly: true }).then(function(newSubscription) {
+        return registration.pushManager.subscribe({ userVisibleOnly: true })
+        .then(function(newSubscription) {
           return newSubscription;
         });
       });
-    }).then(function(subscription) {
+    })
+    .then(function(subscription) {
       var key = subscription.getKey ? subscription.getKey('p256dh') : '';
+
       machineName = domMachineName.value;
+
       fetch('./register', {
         method: 'post',
         headers: {
@@ -52,8 +59,10 @@ function register() {
           token: domTokenInput.value,
           name: machineName
         }),
-      }).then(function(response) {
-        response.json().then(function(body) {
+      })
+      .then(function(response) {
+        response.json()
+        .then(function(body) {
           var token = body.token;
           if (response.ok) {
             localforage.setItem('token', token);
@@ -150,12 +159,12 @@ function showMachines(deviceList) {
 // load machines from the server
 function getMachines(token) {
   fetch('/devices/' + token)
-    .then(function(response) {
-      response.json()
-        .then(function(body) {
-          showMachines(body.machines);
-      });
+  .then(function(response) {
+    response.json()
+    .then(function(body) {
+      showMachines(body.machines);
     });
+  });
 }
 
 if (navigator.serviceWorker) {
