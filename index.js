@@ -46,19 +46,14 @@ app.get('/', function(req, res) {
   res.render('index');
 });
 
-app.get('/devices/:token', function(req, res) {
-  return sendMachines(res, req.params.token);
-});
-
 // get machines for the token and send them along with the token
 function sendMachines(res, token) {
   var machines = {};
 
   return redis.smembers(token)
   .then(function(ids) {
-    if (ids.length === 0) {
-      res.sendStatus(404);
-      return;
+    if (!ids || ids.length === 0) {
+      throw new Error('Not Found');
     }
 
     var promises = ids.map(function(machineId) {
@@ -96,6 +91,11 @@ function handleError(res, err) {
     res.sendStatus(500);
   }
 }
+
+app.get('/devices/:token', function(req, res) {
+  return sendMachines(res, req.params.token)
+  .catch(err => handleError(res, err));
+});
 
 // adds a new machine to a token set
 // creates a new token set if needed
