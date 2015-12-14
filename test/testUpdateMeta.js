@@ -2,6 +2,7 @@ var mercurius = require('../index.js');
 var request = require('supertest');
 var assert = require('assert');
 var nock = require('nock');
+var redis = require('../redis.js');
 
 describe('mercurius', function() {
   var token;
@@ -61,9 +62,23 @@ describe('mercurius', function() {
       .post('/updateMeta')
       .send({
         token: token,
-        machineId: 'machine2',
+        machineId: 'machine_inesistente',
         name: 'newName',
       })
       .expect(404, done);
+  });
+
+  it('returns 404 on `updateMeta` if the machine is in the token set but doesn\'t exist', function(done) {
+    redis.sadd(token, 'machine_inesistente')
+    .then(function() {
+      request(mercurius.app)
+        .post('/updateMeta')
+        .send({
+          token: token,
+          machineId: 'machine_inesistente',
+          name: 'newName',
+        })
+        .expect(404, done);
+    });
   });
 });
