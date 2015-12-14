@@ -275,21 +275,14 @@ app.post('/updateMeta', function(req, res) {
 app.post('/notify', function(req, res) {
   var token = req.body.token;
 
-  redis.exists(token)
-  .then(function(exists) {
-    if (!exists) {
+  redis.smembers(token)
+  .then(function(machines) {
+    // send notification to all machines assigned to `token`
+    if (!machines || machines.length === 0) {
       throw new Error('Not Found');
     }
 
-    return redis.smembers(token);
-  })
-  .then(function(machines) {
-    // send notification to all machines assigned to `token`
-    if (!machines) {
-      // XXX: Are we being too aggressive here?
-      return deleteToken(token)
-      .then(() => { throw new Error('Broken token.'); });
-    }
+    console.log(machines);
 
     var promises = machines.map(function(machine) {
       return redis.hgetall(machine)
