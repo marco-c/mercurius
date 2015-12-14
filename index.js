@@ -268,20 +268,20 @@ app.post('/updateMeta', function(req, res) {
       return;
     }
 
-    return redis.exists(machineId)
-    .then(function(exists) {
-      if (!exists) {
-        res.sendStatus(404);
-        return;
-      }
+    return redis.exists(machineId);
+  })
+  .then(function(exists) {
+    if (!exists) {
+      res.sendStatus(404);
+      return;
+    }
 
-      return redis.hmset(machineId, {
-        "name": req.body.name,
-        "active": req.body.active
-      })
-      .then(() => res.sendStatus(200));
+    return redis.hmset(machineId, {
+      "name": req.body.name,
+      "active": req.body.active
     });
   })
+  .then(() => res.sendStatus(200))
   .catch(function(err) {
     console.error(err);
     res.sendStatus(500);
