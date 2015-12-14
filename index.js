@@ -47,11 +47,11 @@ app.get('/', function(req, res) {
 });
 
 app.get('/devices/:token', function(req, res) {
-  return sendMachines(req, res, req.params.token);
+  return sendMachines(res, req.params.token);
 });
 
 // get machines for the token and send them along with the token
-function sendMachines(req, res, token) {
+function sendMachines(res, token) {
   var machines = {};
 
   return redis.smembers(token)
@@ -130,7 +130,7 @@ app.post('/register', function(req, res) {
       return redis.sadd(token, machineId);
     }
   })
-  .then(() => sendMachines(req, res, token))
+  .then(() => sendMachines(res, token))
   .catch(function(err) {
     console.error(err);
 
@@ -210,7 +210,7 @@ app.post('/unregisterMachine', function(req, res) {
       return sendNotification(token, registration, payload);
     });
   })
-  .then(() => sendMachines(req, res, token))
+  .then(() => sendMachines(res, token))
   .catch(function(err) {
     console.error(err);
     res.sendStatus(500);
