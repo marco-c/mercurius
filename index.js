@@ -54,12 +54,6 @@ app.get('/devices/:token', function(req, res) {
 function sendMachines(req, res, token) {
   var machines = {};
   var machineId;
-  function machinePromise(machineId) {
-    return redis.hgetall(machineId)
-    .then(function(machine) {
-      machines[machineId] = machine;
-    });
-  }
 
   return redis.smembers(token)
   .then(function(ids) {
@@ -68,7 +62,12 @@ function sendMachines(req, res, token) {
       return;
     }
 
-    var promises = ids.map(machinePromise);
+    var promises = ids.map(function(machineId) {
+      return redis.hgetall(machineId)
+      .then(function(machine) {
+        machines[machineId] = machine;
+      });
+    });
 
     return Promise.all(promises)
     .then(() => res.send({
@@ -152,13 +151,7 @@ app.post('/unregister', function(req, res) {
 
     return redis.smembers(token);
   })
-  .then(function(machines) {
-    var promises = machines.map(function(machine) {
-      return redis.del(machine);
-    });
-
-    return Promise.all(promises);
-  })
+  .then(machines => Promise.all(machines.map(machine => redis.del(machine))))
   .then(() => redis.del(token))
   .then(() => res.sendStatus(200))
   .catch(function(err) {
