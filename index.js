@@ -282,8 +282,6 @@ app.post('/notify', function(req, res) {
       throw new Error('Not Found');
     }
 
-    console.log(machines);
-
     var promises = machines.map(function(machine) {
       return redis.hgetall(machine)
       .then(registration => sendNotification(token, registration, JSON.stringify(req.body.payload), req.body.ttl));
