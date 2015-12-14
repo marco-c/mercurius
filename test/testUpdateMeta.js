@@ -4,7 +4,7 @@ var assert = require('assert');
 var nock = require('nock');
 var redis = require('../redis.js');
 
-describe('mercurius', function() {
+describe('mercurius updateMeta', function() {
   var token;
 
   before(function(done) {

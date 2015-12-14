@@ -3,7 +3,7 @@ var request = require('supertest');
 var assert = require('assert');
 var fs = require('fs');
 
-describe('mercurius', function() {
+describe('mercurius generateBarcode', function() {
   var token;
 
   before(function(done) {

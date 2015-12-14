@@ -3,7 +3,7 @@ var request = require('supertest');
 var assert = require('assert');
 var nock = require('nock');
 
-describe('mercurius', function() {
+describe('mercurius (multiple-machines-)notify', function() {
   var token;
 
   before(function(done) {

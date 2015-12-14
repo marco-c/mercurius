@@ -3,7 +3,7 @@ var request = require('supertest');
 var assert = require('assert');
 var nock = require('nock');
 
-describe('mercurius', function() {
+describe('mercurius getPayload', function() {
   var token;
 
   before(function(done) {
