@@ -284,6 +284,28 @@ describe('mercurius', function() {
     });
   });
 
+  it('returns 404 on `updateRegistration` if the machine exists but isn\'t in the token set', function(done) {
+    request(mercurius.app)
+    .post('/register')
+    .send({
+      machineId: 'machine_3',
+      endpoint: 'https://localhost:50005',
+      key: 'key',
+    })
+    .end(function() {
+      request(mercurius.app)
+      .post('/updateRegistration')
+      .send({
+        token: token,
+        machineId: 'machine_3',
+        endpoint: 'endpoint',
+        key: urlBase64.encode(userPublicKey),
+        name: 'newName',
+      })
+      .expect(404, done);
+    });
+  });
+
   it('replies with 404 on `getPayload` if there\'s no payload available (because endpoint is not GCM)', function(done) {
     request(mercurius.app)
       .get('/getPayload')
