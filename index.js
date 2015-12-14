@@ -148,15 +148,14 @@ app.post('/register', function(req, res) {
 app.post('/unregister', function(req, res) {
   var token = req.body.token;
 
-  redis.exists(token)
-  .then(function(result) {
-    if (!result) {
+  redis.smembers(token)
+  .then(function(machines) {
+    if (!machines || machines.length === 0) {
       throw new Error('Not Found');
     }
 
-    return redis.smembers(token);
+    return Promise.all(machines.map(machine => redis.del(machine)));
   })
-  .then(machines => Promise.all(machines.map(machine => redis.del(machine))))
   .then(() => redis.del(token))
   .then(() => res.sendStatus(200))
   .catch(err => handleError(res, err));
