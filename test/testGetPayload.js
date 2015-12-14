@@ -22,7 +22,7 @@ describe('mercurius getPayload', function() {
     });
   });
 
-  it('replies with 404 on `getPayload` if there\'s no payload available', function(done) {
+  it('replies with 404 if there\'s no payload available', function(done) {
     request(mercurius.app)
     .get('/getPayload/' + token)
     .send()
@@ -43,7 +43,7 @@ describe('mercurius getPayload', function() {
     .expect(200, done);
   });
 
-  it('replies with the payload encoded in JSON on `getPayload` if there\'s a payload available', function(done) {
+  it('replies with the payload encoded in JSON if there\'s a payload available', function(done) {
     request(mercurius.app)
     .get('/getPayload/' + token)
     .send()
@@ -54,7 +54,7 @@ describe('mercurius getPayload', function() {
     .end(done);
   });
 
-  it('replies with the payload encoded in JSON on `getPayload` (doesn\'t remove the payload on `getPayload`)', function(done) {
+  it('replies with the payload encoded in JSON (doesn\'t remove the payload)', function(done) {
     request(mercurius.app)
     .get('/getPayload/' + token)
     .send()

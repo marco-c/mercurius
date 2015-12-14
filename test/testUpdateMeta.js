@@ -23,7 +23,7 @@ describe('mercurius updateMeta', function() {
     });
   });
 
-  it('updates the metadata successfully on `updateMeta`', function(done) {
+  it('updates the metadata successfully', function(done) {
     nock('https://localhost:50005')
     .post('/')
     .reply(201);
@@ -46,7 +46,7 @@ describe('mercurius updateMeta', function() {
     });
   });
 
-  it('returns 404 on `updateMeta` if the token doesn\'t exist', function(done) {
+  it('returns 404 if the token doesn\'t exist', function(done) {
     request(mercurius.app)
     .post('/updateMeta')
     .send({
@@ -57,7 +57,7 @@ describe('mercurius updateMeta', function() {
     .expect(404, done);
   });
 
-  it('returns 404 on `updateMeta` if the machine doesn\'t exist', function(done) {
+  it('returns 404 if the machine doesn\'t exist', function(done) {
     request(mercurius.app)
     .post('/updateMeta')
     .send({
@@ -68,7 +68,7 @@ describe('mercurius updateMeta', function() {
     .expect(404, done);
   });
 
-  it('returns 404 on `updateMeta` if the machine is in the token set but doesn\'t exist', function(done) {
+  it('returns 404 if the machine is in the token set but doesn\'t exist', function(done) {
     redis.sadd(token, 'machine_inesistente')
     .then(function() {
       request(mercurius.app)
@@ -82,7 +82,7 @@ describe('mercurius updateMeta', function() {
     });
   });
 
-  it('returns 404 on `updateMeta` if the machine exists but isn\'t in the token set', function(done) {
+  it('returns 404 if the machine exists but isn\'t in the token set', function(done) {
     request(mercurius.app)
     .post('/register')
     .send({
