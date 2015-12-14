@@ -298,24 +298,24 @@ app.post('/notify', function(req, res) {
       return;
     }
 
-    return redis.smembers(token)
-    .then(function(machines) {
-      // send notification to all machines assigned to `token`
-      if (!machines) {
-        // XXX: Are we being too aggressive here?
-        return redis.del(token)
-        .then(() => { throw new Error('Broken token.'); });
-      }
-
-      var promises = machines.map(function(machine) {
-        return redis.hgetall(machine)
-        .then(registration => sendNotification(token, registration, JSON.stringify(req.body.payload), req.body.ttl));
-      });
-
-      return Promise.all(promises)
-      .then(() => res.sendStatus(200));
-    });
+    return redis.smembers(token);
   })
+  .then(function(machines) {
+    // send notification to all machines assigned to `token`
+    if (!machines) {
+      // XXX: Are we being too aggressive here?
+      return redis.del(token)
+      .then(() => { throw new Error('Broken token.'); });
+    }
+
+    var promises = machines.map(function(machine) {
+      return redis.hgetall(machine)
+      .then(registration => sendNotification(token, registration, JSON.stringify(req.body.payload), req.body.ttl));
+    });
+
+    return Promise.all(promises);
+  })
+  .then(() => res.sendStatus(200))
   .catch(function(err) {
     console.error('Error in sending notification: ' + err);
     res.sendStatus(500);
