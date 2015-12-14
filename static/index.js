@@ -1,4 +1,3 @@
-var registrationPromise = navigator.serviceWorker.register('service-worker.js');
 var machineId;
 var machineName;
 
@@ -28,7 +27,7 @@ function register() {
       return;
     }
 
-    registrationPromise.then(function(registration) {
+    navigator.serviceWorker.ready.then(function(registration) {
       return registration.pushManager.getSubscription().then(function(subscription) {
         if (subscription) {
           return subscription;
@@ -75,7 +74,7 @@ function register() {
 
 domRegister.onclick = register;
 
-var sections = ['registrationForm', 'unregistrationForm'];
+var sections = ['registrationForm', 'unregistrationForm', 'unsupported'];
 function showSection(section) {
   for (var index = 0; index < sections.length; index++) {
     if (sections[index] === section) {
@@ -159,7 +158,17 @@ function getMachines(token) {
     });
 }
 
+if (navigator.serviceWorker) {
+  navigator.serviceWorker.register('service-worker.js');
+} else {
+  showSection('unsupported');
+}
+
 window.onload = function() {
+  if (!navigator.serviceWorker) {
+    return;
+  }
+
   localforage.getItem('machineId')
   .then(function(id) {
     if (id) {
