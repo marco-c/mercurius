@@ -144,12 +144,6 @@ app.post('/register', function(req, res) {
   .catch(err => handleError(res, err));
 });
 
-function deleteToken(token) {
-  return redis.smembers(token)
-  .then(machines => Promise.all(machines.map(machine => redis.del(machine))))
-  .then(() => redis.del(token));
-}
-
 // remove entire token set and all its machines
 app.post('/unregister', function(req, res) {
   var token = req.body.token;
@@ -160,8 +154,10 @@ app.post('/unregister', function(req, res) {
       throw new Error('Not Found');
     }
 
-    return deleteToken(token);
+    return redis.smembers(token);
   })
+  .then(machines => Promise.all(machines.map(machine => redis.del(machine))))
+  .then(() => redis.del(token))
   .then(() => res.sendStatus(200))
   .catch(err => handleError(res, err));
 });
