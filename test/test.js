@@ -235,6 +235,13 @@ describe('mercurius', function() {
       .expect(200, done);
   });
 
+  it('replies with 404 on `getPayload` for Web Push-capable endpoints', function(done) {
+    request(mercurius.app)
+    .get('/getPayload/' + token)
+    .send()
+    .expect(404, done);
+  });
+
   it('updates the registration successfully on `updateRegistration`', function(done) {
     nock('https://localhost:50007')
     .post('/')
