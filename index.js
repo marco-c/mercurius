@@ -53,7 +53,6 @@ app.get('/devices/:token', function(req, res) {
 // get machines for the token and send them along with the token
 function sendMachines(req, res, token) {
   var machines = {};
-  var machineId;
 
   return redis.smembers(token)
   .then(function(ids) {
@@ -69,12 +68,12 @@ function sendMachines(req, res, token) {
       });
     });
 
-    return Promise.all(promises)
-    .then(() => res.send({
-      token: token,
-      machines: machines
-    }));
-  });
+    return Promise.all(promises);
+  })
+  .then(() => res.send({
+    token: token,
+    machines: machines
+  }));
 }
 
 // adds a new machine to a token set
