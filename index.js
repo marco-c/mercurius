@@ -76,58 +76,69 @@ function sendMachines(req, res, token) {
   }));
 }
 
+function randomBytes(len) {
+  return new Promise(function(resolve, reject) {
+    crypto.randomBytes(len, function(err, res) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(res);
+      }
+    });
+  });
+}
+
 // adds a new machine to a token set
 // creates a new token set if needed
 app.post('/register', function(req, res) {
   // add/update machine in database
   var machineId = req.body.machineId;
+  var token = req.body.token;
 
-  new Promise(function(resolve, reject) {
-    // creating a new token
-    if (!req.body.token) {
-      console.log('DEBUG: Creating a new token for machine ' + machineId);
+  var getTokenPromise;
 
-      crypto.randomBytes(8, function(ex, buf) {
-        resolve(buf.toString('hex'));
-      });
+  if (!req.body.token) {
+    console.log('DEBUG: Creating a new token for machine ' + machineId);
 
-      return;
-    }
+    getTokenPromise = randomBytes(8)
+    .then(res => token = res.toString('hex'));
+  } else {
+    console.log('DEBUG: Registering machine ' + machineId + ' using existing token ' + token);
 
-    console.log('DEBUG: Registering machine ' + machineId + ' using existing token');
-
-    redis.exists(req.body.token)
-    .then(function(result) {
-      if (!result) {
-        reject();
-      } else {
-        resolve(req.body.token);
+    getTokenPromise = redis.exists(token)
+    .then(function(exists) {
+      if (!exists) {
+        throw new Error('Attempt to use a non existing token');
       }
-    }, reject);
-  })
-  .then(function(token) {
-    redis.hmset(machineId, {
+    });
+  }
+
+  getTokenPromise
+  .then(function() {
+    return redis.hmset(machineId, {
       endpoint: req.body.endpoint,
       key: req.body.key,
       name: req.body.name,
       active: true
-    })
-    .then(() => redis.sismember(token, machineId))
-    .then(function(isMember) {
-      // add to the token set only if not there already (multiple
-      // notifications!)
-      if (!isMember) {
-        return redis.sadd(token, req.body.machineId);
-      }
-    })
-    .then(() => sendMachines(req, res, token))
-    .catch(function(err) {
-      console.error(err);
-      res.sendStatus(500);
     });
-  }, function() {
-    console.log('DEBUG: Attempt to use a non existing token');
-    res.sendStatus(404);
+  })
+  .then(() => redis.sismember(token, machineId))
+  .then(function(isMember) {
+    // add to the token set only if not there already (multiple
+    // notifications!)
+    if (!isMember) {
+      return redis.sadd(token, machineId);
+    }
+  })
+  .then(() => sendMachines(req, res, token))
+  .catch(function(err) {
+    console.error(err);
+
+    if (err.message === 'Attempt to use a non existing token') {
+      res.sendStatus(404);
+    } else {
+      res.sendStatus(500);
+    }
   });
 });
 
