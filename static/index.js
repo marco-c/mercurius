@@ -17,6 +17,21 @@ domShowTokenInput.onclick = function() {
   domTokenInput.style.display = 'block';
   domTokenLabel.style.display = 'block';
   this.style.display = 'none';
+
+  Quagga.init({}, function(err) {
+    if (err) {
+      console.error(err);
+      return;
+    }
+
+    Quagga.start();
+  });
+
+  Quagga.onDetected(function(result) {
+    var code = result.codeResult.code;
+    window.alert('Detected: ' + code);
+    Quagga.stop();
+  });
 };
 
 domMachineName.placeholder = window.navigator.userAgent;
