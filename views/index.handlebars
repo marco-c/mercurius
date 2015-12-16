@@ -3,8 +3,9 @@
   <p>A generic web-push service - <a href="http://github.com/marco-c/mercurius/">github</a></p>
   <div id="registrationForm">
     <h2>Register machine.</h2> 
-    <label for="tokenInput" id="tokenLabel">Provide your token: </label>
+    <label for="tokenInput" id="tokenLabel">Provide your token (insert manually or scan a barcode): </label>
     <input type="text" id="tokenInput" placeholder="ddskljhlewiue98323opjwhealkdjhcdp03e"></input>
+    <div id="interactive" class="viewport"></div>
     <p id="showTokenInput"><a href="#">I've got a token</a></p>
     <label for="machineName">Name your device:</label>
     <input type="text" id="machineName" autofocus></input>
@@ -24,4 +25,5 @@
 </div>
 
 <script src="localforage.min.js"></script>
+<script src="quagga.min.js"></script>
 <script src="./index.js"></script>

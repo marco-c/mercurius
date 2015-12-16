@@ -18,6 +18,6 @@ gulp.task('lint', function() {
 
 gulp.task('default', ['clean', 'lint'], function() {
   return gulp
-    .src(['static/*', 'node_modules/localforage/dist/localforage.min.js'])
+    .src(['static/*', 'node_modules/localforage/dist/localforage.min.js', 'node_modules/quagga/dist/quagga.min.js'])
     .pipe(gulp.dest('dist'));
 });

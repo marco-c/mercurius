@@ -5,6 +5,7 @@ var machineName;
 var domShowTokenInput = document.getElementById('showTokenInput');
 var domTokenInput = document.getElementById('tokenInput');
 var domTokenLabel = document.getElementById('tokenLabel');
+var domTokenInteractive = document.getElementById('interactive');
 var domMachineName = document.getElementById('machineName');
 var domToken = document.getElementById('token');
 var domTokenBarcode = document.getElementById('tokenBarcode');
@@ -17,6 +18,22 @@ domShowTokenInput.onclick = function() {
   domTokenInput.style.display = 'block';
   domTokenLabel.style.display = 'block';
   this.style.display = 'none';
+
+  Quagga.init({}, function(err) {
+    if (err) {
+      console.error(err);
+      return;
+    }
+
+    Quagga.start();
+  });
+
+  Quagga.onDetected(function(result) {
+    domTokenInput.value = result.codeResult.code;
+    Quagga.stop();
+    domTokenInteractive.style.display = 'none';
+    window.alert('Token detected!');
+  });
 };
 
 domMachineName.placeholder = window.navigator.userAgent;
