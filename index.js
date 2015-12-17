@@ -277,9 +277,26 @@ app.post('/notify', function(req, res) {
       throw new Error('Not Found');
     }
 
+    function checkActivity(token, machine, client, registration, payload, ttl) {
+      var activityKey = token + ':' + machine + ':' + client;
+      return redis.get(activityKey)
+      .then(function(isActive) {
+        if (isActive) {
+          console.log(activityKey + ' is active');
+          return sendNotification(token, registration, client, payload, ttl);
+        }
+        console.log(activityKey + ' is NOT active');
+      })
+      .except(function() {
+        redis.set(activityKey, 1);
+        console.log(activityKey + ' created');
+        return sendNotification(token, registration, client, payload, ttl);
+      });
+    }
+
     var promises = machines.map(function(machine) {
       return redis.hgetall(machine)
-      .then(registration => sendNotification(token, registration, JSON.stringify(req.body.payload), req.body.ttl));
+      .then(registration => checkActivity(token, machine, req.body.client, registration, JSON.stringify(req.body.payload), req.body.ttl));
     });
 
     return Promise.all(promises);
