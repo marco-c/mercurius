@@ -39,9 +39,9 @@ domShowTokenInput.onclick = function() {
 domMachineName.placeholder = window.navigator.userAgent;
 
 function drawBarcode(text) {
-  var bw = new BWIPJS;
+  var bw = new BWIPJS();
 
-  bw.bitmap(new Bitmap);
+  bw.bitmap(new Bitmap());
 
   bw.scale(2, 2);
 
