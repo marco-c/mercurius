@@ -43,7 +43,7 @@ function drawBarcode(text) {
 
   bw.bitmap(new Bitmap);
 
-  bw.scale(1, 1);
+  bw.scale(2, 2);
 
   bw.push(text);
   bw.push({
