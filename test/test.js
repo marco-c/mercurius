@@ -191,6 +191,7 @@ describe('mercurius', function() {
     .post('/notify')
     .send({
       token: 'token_inesistente',
+      client: 'test'
     })
     .expect(404, done);
   });
@@ -204,6 +205,7 @@ describe('mercurius', function() {
     .post('/notify')
     .send({
       token: token,
+      client: 'test'
     })
     .expect(500, done);
   });
@@ -217,6 +219,7 @@ describe('mercurius', function() {
     .post('/notify')
     .send({
       token: token,
+      client: 'test'
     })
     .expect(200, done);
   });
@@ -230,6 +233,7 @@ describe('mercurius', function() {
     .post('/notify')
     .send({
       token: token,
+      client: 'test',
       payload: 'hello',
     })
     .expect(200, done);
@@ -260,6 +264,7 @@ describe('mercurius', function() {
       .post('/notify')
       .send({
         token: token,
+        client: 'test'
       })
       .expect(200, done);
     });
