@@ -7,7 +7,6 @@ var bodyParser = require('body-parser');
 var redis = require('./redis.js');
 var webPush = require('web-push');
 var exphbs  = require('express-handlebars');
-var bwipjs = require('bwip-js');
 
 var app = express();
 app.engine('handlebars', exphbs({defaultLayout: 'main'}));
