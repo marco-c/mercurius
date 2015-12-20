@@ -58,7 +58,7 @@ function Bitmap(bgcolor) {
 			cvs.width  = 32;
 			cvs.height = 32;
 			cvs.getContext('2d').clearRect(0, 0, cvs.width, cvs.height);
-			cvs.style.visibility = 'visible';
+			cvs.style.display = 'block';
 			return;
 		}
 
@@ -114,6 +114,6 @@ function Bitmap(bgcolor) {
 			dat[idx+3] = 255;
 		}
 		ctx.putImageData(id, 0, 0);
-		cvs.style.visibility = 'visible';
+		cvs.style.display = 'block';
 	};
 }
