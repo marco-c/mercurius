@@ -1,7 +1,7 @@
 // Original source is:
 // Copyright (c) 2011-2015 Mark Warren
 //
-// See the COPYRIGHT file in the bwip.js root directory
+// See the LICENSE file in the node_modules/bwip-js directory
 // for the extended copyright notice.
 
 // Dynamically load the encoders.
