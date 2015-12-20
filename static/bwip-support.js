@@ -53,8 +53,7 @@ function Bitmap(bgcolor) {
 		if (maxy < y) maxy = y;
 	};
 
-	this.show = function(cvsid, rot) {
-		var cvs = cvsid instanceof window.HTMLCanvasElement ? cvsid : document.getElementById(cvsid);
+	this.show = function(cvs, rot) {
 		if (pts.length === 0) {
 			cvs.width  = 32;
 			cvs.height = 32;

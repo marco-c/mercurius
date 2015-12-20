@@ -67,7 +67,7 @@ function drawBarcode(text) {
         console.error(s + (s ? ': ' : '') + e.message);
       }
     } else {
-      bw.bitmap().show('tokenBarcode', 'N');
+      bw.bitmap().show(domTokenBarcode, 'N');
       domTokenBarcode.style.display = 'block';
     }
   });
