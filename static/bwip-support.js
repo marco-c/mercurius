@@ -8,19 +8,9 @@
 BWIPJS.load = function(path) {
 	var script = document.createElement('script');
 	script.type = 'text/javascript';
-	script.src = BWIPJS.load.root + path.replace('bwipp/', '');
+	script.src = path.replace('bwipp/', '');
 	document.head.appendChild(script);
 };
-
-// Determine where this script is located on the server and
-// make the encoder loading relative to it.
-(function() {
-	var scripts = document.getElementsByTagName("script");
-	// http://host:port/foo/bar/lib/canvas.js
-	// We want root to be everything but bwip-support.js
-    BWIPJS.load.root = scripts[scripts.length-1].src.replace(/bwip-support.js$/,'');
-})();
-
 
 BWIPJS.print = function(s) {
 	var div = document.getElementById('output');
