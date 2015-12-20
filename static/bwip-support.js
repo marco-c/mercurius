@@ -20,10 +20,10 @@ BWIPJS.print = function(s) {
 function Bitmap(bgcolor) {
   var clr = [0, 0, 0];
   var pts = [];
-  var minx = 0;  // min-x
-  var miny = 0;  // min-y
-  var maxx = 0;  // max-x
-  var maxy = 0;  // max-y
+  var minx = 0; // min-x
+  var miny = 0; // min-y
+  var maxx = 0; // max-x
+  var maxy = 0; // max-y
 
   this.color = function(r, g, b) {
     clr = [r, g, b];
