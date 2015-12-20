@@ -17,7 +17,7 @@ BWIPJS.load = function(path) {
 (function() {
 	var scripts = document.getElementsByTagName("script");
 	// http://host:port/foo/bar/lib/canvas.js
-	// We want root to be everything but lib/canvas.js
+	// We want root to be everything but bwip-support.js
     BWIPJS.load.root = scripts[scripts.length-1].src.replace(/bwip-support.js$/,'');
 })();
 
