@@ -13,9 +13,6 @@ BWIPJS.load = function(path) {
 };
 
 BWIPJS.print = function(s) {
-	var div = document.getElementById('output');
-	if (div)
-		div.innerHTML += s.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '<br>';
 };
 
 // Encapsulate the bitmap interface
