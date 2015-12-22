@@ -3,7 +3,7 @@ var request = require('supertest');
 var nock = require('nock');
 var chai = require('chai');
 
-chai.should();
+var should = chai.should();
 
 describe('mercurius (multiple-machines-)notify', function() {
   var token;
@@ -24,19 +24,19 @@ describe('mercurius (multiple-machines-)notify', function() {
     });
   });
 
-  it('sends notifications to multiple machines of a registered user', function(done) {
-    var count = 0;
-    function countReplies() {
-      count++;
-      return [201, 'boo'];
-    }
-    nock('https://localhost:50006')
-    .post('/')
-    .reply(countReplies);
+  afterEach(function(done) {
+    nock.cleanAll();
+    done();
+  });
 
-    nock('https://localhost:50005')
+  it('sends notifications to multiple machines of a registered user', function(done) {
+    var first = nock('https://localhost:50006')
     .post('/')
-    .reply(countReplies);
+    .reply(201);
+
+    var second = nock('https://localhost:50005')
+    .post('/')
+    .reply(201);
 
     var agent = request(mercurius.app);
     agent.post('/register')
@@ -46,15 +46,15 @@ describe('mercurius (multiple-machines-)notify', function() {
       endpoint: 'https://localhost:50006',
       key: 'key',
     })
-    .end(function(res) {
+    .end(function() {
       agent.post('/notify')
       .send({
         token: token,
       })
       .expect(200)
-      .end(function(err, res) {
-        console.log(err, res);
-        count.should.equal(2);
+      .end(function() {
+        should.equal(first.isDone(), true);
+        should.equal(second.isDone(), true);
         done();
       });
     });

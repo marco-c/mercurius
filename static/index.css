@@ -115,3 +115,8 @@ h3 a {
 #machines td.on {
    background: #afa;
 }
+
+#machines td.machine {
+	text-align: left;
+	min-width: 200px;
+}

@@ -69,10 +69,10 @@ function sendMachines(res, token) {
     });
 
     promises.push(
-        redis.smembers(token + ':clients')
-        .then(function(sclients) {
-          clients = sclients;
-        }));
+      redis.smembers(token + ':clients')
+      .then(function(sclients) {
+        clients = sclients;
+      }));
 
     return Promise.all(promises);
   })
@@ -302,17 +302,13 @@ app.post('/notify', function(req, res) {
           // check for multiple clients
           return redis.sismember(token + ':clients', client)
           .then(function(isMember) {
-            return new Promise(function(resolve, reject) {
-              if (!isMember) {
-                redis.sadd(token + ':clients', client)
-                .then(function() {
-                  resolve();
-                });
-              }
-              resolve();
-            }).then(function() {
-              return sendNotification(token, registration, payload, ttl);
-            });
+            if (!isMember) {
+              return redis.sadd(token + ':clients', client)
+              .then(function() {
+                return sendNotification(token, registration, payload, ttl);
+              });
+            }
+            return sendNotification(token, registration, payload, ttl);
           });
         });
       });

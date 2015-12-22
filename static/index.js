@@ -111,14 +111,16 @@ function showSection(section) {
   }
 }
 
+function forceUnregister() {
+  domToken.textContent = '';
+  domTokenBarcode.src = '';
+  showSection('registrationForm');
+  localforage.removeItem('token');
+}
+
 domUnregister.onclick = function() {
   unregisterMachine(machineId)
-  .then(function(response) {
-    domToken.textContent = '';
-    domTokenBarcode.src = '';
-    showSection('registrationForm');
-    localforage.removeItem('token');
-  });
+  .then(forceUnregister);
 };
 
 function unregisterMachine(mId) {
@@ -149,7 +151,7 @@ function showMachine(token, mId, device, clients) {
   var tr = document.createElement('tr');
   var td = document.createElement('td');
   var a = document.createElement('a');
-  td.textContent = (device.name || mId) + ' ';
+  td.classList.add('machine');
   a.textContent = '[x]';
   a.onclick = function() {
     unregisterMachine(mId)
@@ -161,6 +163,7 @@ function showMachine(token, mId, device, clients) {
     });
   };
   td.appendChild(a);
+  td.appendChild(document.createTextNode(' ' + (device.name || mId)));
   tr.appendChild(td);
   function toggleOnclick(ev) {
     toggleMachineClientNotification(token, mId, ev.target.dataset.client)
@@ -213,6 +216,9 @@ function showMachines(token, deviceList, clientsList) {
 function getMachines(token) {
   fetch('/devices/' + token)
   .then(function(response) {
+    if (response.status === 404) {
+      return forceUnregister();
+    }
     response.json()
     .then(function(body) {
       showMachines(token, body.machines, body.clients);
