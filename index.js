@@ -59,7 +59,7 @@ function sendMachines(res, token) {
     var promises = ids.map(function(machineId) {
       return redis.hgetall(machineId)
       .then(function(machine) {
-        return redis.hgetall(token + ':' + machineId)
+        return redis.hgetall(machineId + ':clients')
         .then(function(machineClients) {
           machine.clients = machineClients;
           machines[machineId] = machine;
@@ -98,7 +98,7 @@ function handleError(res, err) {
   if (err && err.message === "Not Found") {
     res.sendStatus(404);
   } else {
-    console.error(err);
+    console.error('ERROR: ', err);
     res.sendStatus(500);
   }
 }
@@ -284,7 +284,7 @@ app.post('/notify', function(req, res) {
     // check activity and sendNotification if not specified or "1"
     function checkActivity(token, machine, client, registration, payload, ttl) {
       // XXX: this should be a hash per machine
-      var machineKey = token + ':' + machine;
+      var machineKey = machine + ':clients';
       return redis.hget(machineKey, client)
       .then(function(isActive) {
         if (isActive === '0') {
@@ -346,12 +346,12 @@ app.post('/toggleClientNotification', function(req, res) {
   var token = req.body.token;
   var machineId = req.body.machineId;
   var client = req.body.client;
-  var machineKey = token + ':' + machineId;
+  var machineKey = machineId + ':clients';
   redis.hget(machineKey, client)
   .then(function(active) {
     redis.hmset(machineKey, client, (active === '0' ? '1' : '0'))
     .then(() => sendMachines(res, token))
-    .catch(err => handleError(err));
+    .catch(err => handleError(res, err));
   });
 });
 
