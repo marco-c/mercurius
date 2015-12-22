@@ -7,7 +7,6 @@ var bodyParser = require('body-parser');
 var redis = require('./redis.js');
 var webPush = require('web-push');
 var exphbs  = require('express-handlebars');
-var bwipjs = require('bwip-js');
 
 var app = express();
 app.engine('handlebars', exphbs({defaultLayout: 'main'}));
@@ -337,24 +336,6 @@ app.get('/getPayload/:token', function(req, res) {
     res.send(payload);
   })
   .catch(err => handleError(res, err));
-});
-
-app.get('/generateBarcode/:token', function(req, res) {
-  bwipjs.toBuffer({
-    bcid: 'code128',
-    text: req.params.token,
-    includetext: true,
-    textxalign: 'center',
-  }, function (err, png) {
-    if (err) {
-      console.error(err);
-      res.sendStatus(500);
-      return;
-    }
-
-    res.writeHead(200, { 'Content-Type': 'image/png' });
-    res.end(png, 'binary');
-  });
 });
 
 if (!process.env.GCM_API_KEY) {
