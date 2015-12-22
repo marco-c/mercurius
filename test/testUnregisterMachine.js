@@ -2,34 +2,16 @@ var mercurius = require('../index.js');
 var request = require('supertest');
 var assert = require('assert');
 var nock = require('nock');
+var testUtils = require('./testUtils.js');
 
 describe('mercurius unregisterMachine', function() {
   var token;
 
-  before(function(done) {
-    mercurius.ready.then(function() {
-      request(mercurius.app)
-      .post('/register')
-      .send({
-        machineId: 'machine_1',
-        endpoint: 'https://android.googleapis.com/gcm/send/someSubscriptionID',
-        key: '',
-      })
-      .expect(function(res) {
-        token = res.body.token;
-      })
-      .end(function() {
-        request(mercurius.app)
-        .post('/register')
-        .send({
-          token: token,
-          machineId: 'machine_2',
-          endpoint: 'http://localhost:50005',
-          key: '',
-        })
-        .end(done);
-      });
-    });
+  before(function() {
+    return mercurius.ready
+    .then(() => testUtils.register(mercurius.app, 'machine_1', 'https://android.googleapis.com/gcm/send/someSubscriptionID', ''))
+    .then(gotToken => token = gotToken)
+    .then(() => testUtils.register(mercurius.app, 'machine_2', 'https://localhost:50005', '', token));
   });
 
   it('replies with 404 on `getPayload` if there\'s no payload available', function(done) {
