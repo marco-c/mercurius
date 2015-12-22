@@ -2,29 +2,22 @@ var mercurius = require('../index.js');
 var request = require('supertest');
 var assert = require('assert');
 var nock = require('nock');
+var testUtils = require('./testUtils.js');
 
 describe('mercurius getPayload', function() {
-  var token;
+  var gcmToken;
 
-  before(function(done) {
-    mercurius.ready.then(function() {
-      request(mercurius.app)
-      .post('/register')
-      .send({
-        machineId: 'machineX',
-        endpoint: 'https://android.googleapis.com/gcm/send/someSubscriptionID',
-        key: '',
-      })
-      .expect(function(res) {
-        token = res.body.token;
-      })
-      .end(done);
-    });
+  before(function() {
+    return mercurius.ready
+    .then(function() {
+      return testUtils.register(mercurius.app, 'machineX', 'https://android.googleapis.com/gcm/send/someSubscriptionID', '')
+      .then(token => gcmToken = token);
+    })
   });
 
   it('replies with 404 if there\'s no payload available', function(done) {
     request(mercurius.app)
-    .get('/getPayload/' + token)
+    .get('/getPayload/' + gcmToken)
     .send()
     .expect(404, done);
   });
@@ -37,7 +30,7 @@ describe('mercurius getPayload', function() {
     request(mercurius.app)
     .post('/notify')
     .send({
-      token: token,
+      token: gcmToken,
       payload: 'hello',
     })
     .expect(200, done);
@@ -45,7 +38,7 @@ describe('mercurius getPayload', function() {
 
   it('replies with the payload encoded in JSON if there\'s a payload available', function(done) {
     request(mercurius.app)
-    .get('/getPayload/' + token)
+    .get('/getPayload/' + gcmToken)
     .send()
     .expect(function(res) {
       assert.equal(res.status, 200);
@@ -56,7 +49,7 @@ describe('mercurius getPayload', function() {
 
   it('replies with the payload encoded in JSON (doesn\'t remove the payload)', function(done) {
     request(mercurius.app)
-    .get('/getPayload/' + token)
+    .get('/getPayload/' + gcmToken)
     .send()
     .expect(function(res) {
       assert.equal(res.status, 200);
