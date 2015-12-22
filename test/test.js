@@ -134,40 +134,6 @@ describe('mercurius', function() {
     .expect(404, done);
   });
 
-  it('successfully unregisters a machine', function(done) {
-    nock('https://localhost:50008')
-    .post('/')
-    .reply(201);
-
-    request(mercurius.app)
-    .post('/unregisterMachine')
-    .send({
-      token: tokenToUnregister,
-      machineId: 'machine',
-    })
-    .expect(200, done);
-  });
-
-  it('replies with 404 when trying to unregister a non existing token', function(done) {
-    request(mercurius.app)
-    .post('/unregisterMachine')
-    .send({
-      token: 'nonexistingtoken',
-      machineId: 'machine',
-    })
-    .expect(404, done);
-  });
-
-  it('replies with 404 when trying to unregister a non registered machine', function(done) {
-    request(mercurius.app)
-    .post('/unregisterMachine')
-    .send({
-      token: tokenToUnregister,
-      machineId: 'non-existing-machine',
-    })
-    .expect(404, done);
-  });
-
   it('successfully unregisters users', function(done) {
     request(mercurius.app)
     .post('/unregister')
