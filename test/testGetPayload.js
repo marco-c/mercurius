@@ -2,17 +2,24 @@ var mercurius = require('../index.js');
 var request = require('supertest');
 var assert = require('assert');
 var nock = require('nock');
+var crypto = require('crypto');
+var urlBase64 = require('urlsafe-base64');
 var testUtils = require('./testUtils.js');
 
+var userCurve = crypto.createECDH('prime256v1');
+
+var userPublicKey = userCurve.generateKeys();
+var userPrivateKey = userCurve.getPrivateKey();
+
 describe('mercurius getPayload', function() {
-  var gcmToken;
+  var gcmToken, webPushToken;
 
   before(function() {
     return mercurius.ready
-    .then(function() {
-      return testUtils.register(mercurius.app, 'machineX', 'https://android.googleapis.com/gcm/send/someSubscriptionID', '')
-      .then(token => gcmToken = token);
-    })
+    .then(() => testUtils.register(mercurius.app, 'machineX', 'https://android.googleapis.com/gcm/send/someSubscriptionID', ''))
+    .then(token => gcmToken = token)
+    .then(() => testUtils.register(mercurius.app, 'machineZ', 'https://localhost:50005', urlBase64.encode(userPublicKey)))
+    .then(token => webPushToken = token);
   });
 
   it('replies with 404 if there\'s no payload available', function(done) {
@@ -56,5 +63,26 @@ describe('mercurius getPayload', function() {
       assert.equal(res.text, '"hello"');
     })
     .end(done);
+  });
+
+  it('sends a notification with payload to a registered user', function(done) {
+    nock('https://localhost:50005')
+    .post('/')
+    .reply(201);
+
+    request(mercurius.app)
+    .post('/notify')
+    .send({
+      token: webPushToken,
+      payload: 'hello',
+    })
+    .expect(200, done);
+  });
+
+  it('replies with 404 on `getPayload` for Web Push-capable endpoints', function(done) {
+    request(mercurius.app)
+    .get('/getPayload/' + webPushToken)
+    .send()
+    .expect(404, done);
   });
 });

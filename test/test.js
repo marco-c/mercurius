@@ -235,13 +235,6 @@ describe('mercurius', function() {
     .expect(200, done);
   });
 
-  it('replies with 404 on `getPayload` for Web Push-capable endpoints', function(done) {
-    request(mercurius.app)
-    .get('/getPayload/' + token)
-    .send()
-    .expect(404, done);
-  });
-
   it('updates the registration successfully on `updateRegistration`', function(done) {
     nock('https://localhost:50007')
     .post('/')
@@ -311,14 +304,5 @@ describe('mercurius', function() {
       })
       .expect(404, done);
     });
-  });
-
-  it('replies with 404 on `getPayload` if there\'s no payload available (because endpoint is not GCM)', function(done) {
-    request(mercurius.app)
-    .get('/getPayload')
-    .send({
-      token: token,
-    })
-    .expect(404, done);
   });
 });
