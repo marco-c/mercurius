@@ -4,12 +4,10 @@ var nock = require('nock');
 var chai = require('chai');
 var crypto = require('crypto');
 var urlBase64 = require('urlsafe-base64');
-var redis = require('redis');
+var redis = require('../redis');
 
 var assert = chai.assert;
 chai.should();
-
-var client = redis.createClient(process.env.REDISCLOUD_URL, {no_ready_check: true});
 
 var userCurve = crypto.createECDH('prime256v1');
 
@@ -79,7 +77,8 @@ describe('mercurius', function() {
   });
 
   it('successfully registers a machine even if it exists', function(done) {
-    client.smembers(tokenToUnregister, function(err, machines) {
+    redis.smembers(tokenToUnregister)
+    .then(function(machines) {
       var startlength = machines.length;
       request(mercurius.app)
       .post('/register')

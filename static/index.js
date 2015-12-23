@@ -38,6 +38,40 @@ domShowTokenInput.onclick = function() {
 
 domMachineName.placeholder = window.navigator.userAgent;
 
+function drawBarcode(text) {
+  var bw = new BWIPJS();
+
+  bw.bitmap(new Bitmap());
+
+  bw.scale(2, 2);
+
+  bw.push(text);
+  bw.push({
+    includetext: true,
+  });
+
+  bw.call('code128', function(e) {
+    if (e) {
+      if (typeof e === 'string') {
+        console.error(e);
+      } else if (e.stack) {
+        console.error(e.message + '\r\n' + e.stack);
+      } else {
+        var s = '';
+        if (e.fileName) {
+          s += e.fileName + ' ';
+        }
+        if (e.lineNumber) {
+          s += '[line ' + e.lineNumber + '] ';
+        }
+        console.error(s + (s ? ': ' : '') + e.message);
+      }
+    } else {
+      bw.bitmap().show(domTokenBarcode, 'N');
+    }
+  });
+}
+
 function register() {
   localforage.getItem('token')
   .then(function(token) {
@@ -86,7 +120,7 @@ function register() {
             localforage.setItem('machineName', machineName);
             domShowMachineName.textContent = machineName || machineId;
             domToken.textContent = token;
-            domTokenBarcode.src = 'generateBarcode/' + token;
+            drawBarcode(token);
             showSection('unregistrationForm');
             showMachines(body.machines);
           } else {
@@ -115,7 +149,7 @@ domUnregister.onclick = function() {
   unregisterMachine(machineId)
   .then(function(response) {
     domToken.textContent = '';
-    domTokenBarcode.src = '';
+    domTokenBarcode.style.display = 'none';
     showSection('registrationForm');
     localforage.removeItem('token');
   });
@@ -210,7 +244,7 @@ window.onload = function() {
       if (token) {
         showSection('unregistrationForm');
         domToken.textContent = token;
-        domTokenBarcode.src = 'generateBarcode/' + token;
+        drawBarcode(token);
         localforage.getItem('machineName')
         .then(function(mName) {
           machineName = mName;
