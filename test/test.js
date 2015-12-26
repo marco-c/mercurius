@@ -98,29 +98,6 @@ describe('mercurius', function() {
     });
   });
 
-
-  it('successfully returnes all machines assigned to a token', function(done) {
-    request(mercurius.app)
-    .get('/devices/' + tokenToUnregister)
-    .send()
-    .expect(function(res) {
-      assert.equal(res.status, 200);
-      assert.isObject(res.body);
-      assert.equal(res.body.token, tokenToUnregister);
-      assert.isObject(res.body.machines);
-      assert.equal(res.body.machines.machine.endpoint, 'https://localhost:50008');
-      assert.equal(res.body.machines.machine2.endpoint, 'endpoint2');
-    })
-    .end(done);
-  });
-
-  it('returns 404 if requesting machines assigned to a non-existing token', function(done) {
-    request(mercurius.app)
-    .get('/devices/nonexisting')
-    .send()
-    .expect(404, done);
-  });
-
   it('returns 404 if bad token provided', function(done) {
     request(mercurius.app)
     .post('/register')
