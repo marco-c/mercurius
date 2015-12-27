@@ -1,6 +1,5 @@
 var mercurius = require('../index.js');
 var request = require('supertest');
-var assert = require('assert');
 var nock = require('nock');
 var crypto = require('crypto');
 var urlBase64 = require('urlsafe-base64');

@@ -1,6 +1,5 @@
 var mercurius = require('../index.js');
 var request = require('supertest');
-var assert = require('assert');
 var nock = require('nock');
 var redis = require('../redis.js');
 
