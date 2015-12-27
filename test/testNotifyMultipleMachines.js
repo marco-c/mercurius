@@ -1,25 +1,16 @@
 var mercurius = require('../index.js');
 var request = require('supertest');
-var assert = require('assert');
 var nock = require('nock');
+var testUtils = require('./testUtils.js');
 
 describe('mercurius (multiple-machines-)notify', function() {
   var token;
 
-  before(function(done) {
-    mercurius.ready.then(function() {
-      request(mercurius.app)
-      .post('/register')
-      .send({
-        machineId: 'machineX',
-        endpoint: 'https://localhost:50005',
-        key: 'key',
-      })
-      .expect(function(res) {
-        token = res.body.token;
-      })
-      .end(done);
-    });
+  before(function() {
+    return mercurius.ready
+    .then(() => testUtils.register(mercurius.app, 'machineX', 'https://localhost:50005', 'key'))
+    .then(gotToken => token = gotToken)
+    .then(() => testUtils.register(mercurius.app, 'machine2', 'https://localhost:50006', 'key', token));
   });
 
   it('sends notifications to multiple machines of a registered user', function(done) {
@@ -32,21 +23,11 @@ describe('mercurius (multiple-machines-)notify', function() {
     .reply(201);
 
     request(mercurius.app)
-    .post('/register')
+    .post('/notify')
     .send({
       token: token,
-      machineId: 'machine2',
-      endpoint: 'https://localhost:50006',
-      key: 'key',
     })
-    .expect(200, function(res) {
-      request(mercurius.app)
-      .post('/notify')
-      .send({
-        token: token,
-      })
-      .expect(200, done);
-    });
+    .expect(200, done);
   });
 
   it('returns `500` if there\'s a failure in sending a notifications to one of the machines of a registered user', function(done) {
