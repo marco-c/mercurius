@@ -49,4 +49,13 @@ describe('mercurius unregister', function() {
     })
     .expect(404, done);
   });
+
+  it('replies with 404 on `notify` after a registration has been removed', function(done) {
+    request(mercurius.app)
+    .post('/notify')
+    .send({
+      token: token,
+    })
+    .expect(404, done);
+  });
 });
