@@ -110,24 +110,6 @@ describe('mercurius', function() {
     .expect(404, done);
   });
 
-  it('successfully unregisters users', function(done) {
-    request(mercurius.app)
-    .post('/unregister')
-    .send({
-      token: tokenToUnregister,
-    })
-    .expect(200, done);
-  });
-
-  it('replies with 404 when trying to unregister a non registered user', function(done) {
-    request(mercurius.app)
-    .post('/unregister')
-    .send({
-      token: tokenToUnregister,
-    })
-    .expect(404, done);
-  });
-
   it('replies with 404 on `notify` when a registration doesn\'t exist', function(done) {
     request(mercurius.app)
     .post('/notify')
