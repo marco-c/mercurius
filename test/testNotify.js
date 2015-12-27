@@ -11,7 +11,7 @@ var userCurve = crypto.createECDH('prime256v1');
 var userPublicKey = userCurve.generateKeys();
 var userPrivateKey = userCurve.getPrivateKey();
 
-describe('mercurius unregister', function() {
+describe('mercurius notify', function() {
   var token;
 
   before(function() {
