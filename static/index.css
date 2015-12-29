@@ -107,3 +107,16 @@ h3 a {
 #tokenInput, #tokenLabel {
 	display: none;
 }
+
+#machines td {
+   text-align: center;
+}
+
+#machines td.on {
+   background: #afa;
+}
+
+#machines td.machine {
+	text-align: left;
+	min-width: 200px;
+}

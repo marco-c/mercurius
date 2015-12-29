@@ -48,6 +48,7 @@ app.get('/', function(req, res) {
 // get machines for the token and send them along with the token
 function sendMachines(res, token) {
   var machines = {};
+  var clients;
 
   return redis.smembers(token)
   .then(function(ids) {
@@ -58,15 +59,26 @@ function sendMachines(res, token) {
     var promises = ids.map(function(machineId) {
       return redis.hgetall(machineId)
       .then(function(machine) {
-        machines[machineId] = machine;
+        return redis.hgetall(machineId + ':clients')
+        .then(function(machineClients) {
+          machine.clients = machineClients;
+          machines[machineId] = machine;
+        });
       });
     });
+
+    promises.push(
+      redis.smembers(token + ':clients')
+      .then(function(sclients) {
+        clients = sclients;
+      }));
 
     return Promise.all(promises);
   })
   .then(() => res.send({
     token: token,
-    machines: machines
+    machines: machines,
+    clients: clients
   }));
 }
 
@@ -86,7 +98,7 @@ function handleError(res, err) {
   if (err && err.message === "Not Found") {
     res.sendStatus(404);
   } else {
-    console.error(err);
+    console.error('ERROR: ', err);
     res.sendStatus(500);
   }
 }
@@ -106,17 +118,13 @@ app.post('/register', function(req, res) {
   var getTokenPromise;
 
   if (!req.body.token) {
-    console.log('DEBUG: Creating a new token for machine ' + machineId);
-
     getTokenPromise = randomBytes(8)
     .then(res => token = res.toString('hex'));
   } else {
-    console.log('DEBUG: Registering machine ' + machineId + ' using existing token ' + token);
-
     getTokenPromise = redis.exists(token)
     .then(function(exists) {
       if (!exists) {
-        console.log('DEBUG: Attempt to use a non existing token: ' + token);
+        console.log('ERROR(?) Attempt to use a non existing token: ' + token);
         throw new Error('Not Found');
       }
     });
@@ -162,7 +170,6 @@ app.post('/unregister', function(req, res) {
 
 function sendNotification(token, registration, payload, ttl) {
   console.log('DEBUG: sending notification to: ' + registration.endpoint);
-
   if (registration.endpoint.indexOf('https://android.googleapis.com/gcm/send') === 0) {
     return redis.set(token + '-payload', payload)
     .then(webPush.sendNotification(registration.endpoint, ttl));
@@ -175,8 +182,6 @@ function sendNotification(token, registration, payload, ttl) {
 app.post('/unregisterMachine', function(req, res) {
   var token = req.body.token;
   var machineId = req.body.machineId;
-
-  console.log('Unregistering machine: ' + machineId);
 
   redis.exists(token)
   .then(function(result) {
@@ -269,16 +274,45 @@ app.post('/updateMeta', function(req, res) {
 app.post('/notify', function(req, res) {
   var token = req.body.token;
 
-  redis.smembers(token)
+  // if a machine registers to a different token its active clients would
+  // need to be added again to the list
+  redis.sismember(token + ':clients', req.body.client)
+  .then(function(isMember) {
+    if (!isMember) {
+      return redis.sadd(token + ':clients', req.body.client);
+    }
+  })
+  .then(function() {
+    return redis.smembers(token);
+  })
   .then(function(machines) {
     // send notification to all machines assigned to `token`
     if (!machines || machines.length === 0) {
       throw new Error('Not Found');
     }
 
+    // check activity and sendNotification if not specified or "1"
+    function checkActivity(token, machine, client, registration, payload, ttl) {
+      var machineKey = machine + ':clients';
+      return redis.hget(machineKey, client)
+      .then(function(isActive) {
+        if (isActive === '0') {
+          // not sending if token:machine client is "0"
+          return;
+        }
+        if (isActive === '1') {
+          // client is active on this machine
+          return sendNotification(token, registration, payload, ttl);
+        }
+        // adding a client to the machine, '1' by default
+        return redis.hmset(machineKey, client, 1)
+        .then(() => sendNotification(token, registration, payload, ttl));
+      });
+    }
+
     var promises = machines.map(function(machine) {
       return redis.hgetall(machine)
-      .then(registration => sendNotification(token, registration, JSON.stringify(req.body.payload), req.body.ttl));
+      .then(registration => checkActivity(token, machine, req.body.client, registration, JSON.stringify(req.body.payload), req.body.ttl));
     });
 
     return Promise.all(promises);
@@ -304,6 +338,19 @@ app.get('/getPayload/:token', function(req, res) {
 if (!process.env.GCM_API_KEY) {
   console.warn('Set the GCM_API_KEY environment variable to support GCM');
 }
+
+app.post('/toggleClientNotification', function(req, res) {
+  var token = req.body.token;
+  var machineId = req.body.machineId;
+  var client = req.body.client;
+  var machineKey = machineId + ':clients';
+  redis.hget(machineKey, client)
+  .then(function(active) {
+    redis.hmset(machineKey, client, (active === '0' ? '1' : '0'))
+    .then(() => sendMachines(res, token))
+    .catch(err => handleError(res, err));
+  });
+});
 
 webPush.setGCMAPIKey(process.env.GCM_API_KEY);
 
