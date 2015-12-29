@@ -57,7 +57,7 @@ describe('mercurius clients support', function() {
     .end(done);
   });
 
-  it('sends notifications to a machine from a client', function(done) {
+  it('doesn\'t send notifications to a machine from a disabled client', function(done) {
     var req = nock('https://localhost:50005')
     .post('/')
     .reply(201);
@@ -92,7 +92,7 @@ describe('mercurius clients support', function() {
     .end(done);
   });
 
-  it('sends notifications to a machine from a client', function(done) {
+  it('sends notifications to a machine from a re-enabled client', function(done) {
     nock('https://localhost:50005')
     .post('/')
     .reply(201);
