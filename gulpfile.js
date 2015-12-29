@@ -25,7 +25,7 @@ gulp.task('default', ['clean', 'lint'], function() {
       // QuaggaJS
       'node_modules/quagga/dist/quagga.min.js',
       // bwip-js
-      'node_modules/bwip-js/bwip.js', 'node_modules/bwip-js/bwipp/code128.js', 'node_modules/bwip-js/bwipp/raiseerror.js', 'node_modules/bwip-js/bwipp/renlinear.js', 'node_modules/bwip-js/Inconsolata.otf', 'node_modules/bwip-js/freetype.js', 'node_modules/bwip-js/freetype.js.mem'
+      'node_modules/bwip-js/bwip.js', 'node_modules/bwip-js/bwipp/code128.js', 'node_modules/bwip-js/bwipp/raiseerror.js', 'node_modules/bwip-js/bwipp/renlinear.js', 'node_modules/bwip-js/freetype.js', 'node_modules/bwip-js/freetype.js.mem',
     ])
     .pipe(gulp.dest('dist'));
 });
