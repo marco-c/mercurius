@@ -9,10 +9,11 @@ describe('mercurius clients support', function() {
 
   before(function(done) {
     mercurius.ready.then(function() {
+      console.log('YYY: registering');
       request(mercurius.app)
       .post('/register')
       .send({
-        machineId: 'machineX',
+        machineId: 'machineXZ',
         endpoint: 'https://localhost:50005',
         key: 'key',
       })
@@ -28,11 +29,12 @@ describe('mercurius clients support', function() {
     .post('/')
     .reply(201);
 
+    console.log('YYY: notification');
     request(mercurius.app)
     .post('/notify')
     .send({
       token: token,
-      client: 'clientX'
+      client: 'clientXZ'
     })
     .expect(200, done);
   });
@@ -44,8 +46,8 @@ describe('mercurius clients support', function() {
     .expect(function(res) {
       assert.equal(res.status, 200);
       assert.equal(res.body.clients.length, 1);
-      assert.equal(res.body.clients.indexOf('clientX'), 0);
-      assert.equal(res.body.machines.machineX.clients.clientX, '1');
+      assert.equal(res.body.clients.indexOf('clientXZ'), 0);
+      assert.equal(res.body.machines.machineXZ.clients.clientXZ, '1');
     })
     .end(done);
   });

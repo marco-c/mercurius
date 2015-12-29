@@ -274,7 +274,17 @@ app.post('/updateMeta', function(req, res) {
 app.post('/notify', function(req, res) {
   var token = req.body.token;
 
-  redis.smembers(token)
+  // if a machine registers to a different token its active clients would
+  // need to be added again to the list
+  redis.sismember(token + ':clients', req.body.client)
+  .then(function(isMember) {
+    if (!isMember) {
+      return redis.sadd(token + ':clients', req.body.client);
+    }
+  })
+  .then(function() {
+    return redis.smembers(token);
+  })
   .then(function(machines) {
     // send notification to all machines assigned to `token`
     if (!machines || machines.length === 0) {
@@ -283,7 +293,6 @@ app.post('/notify', function(req, res) {
 
     // check activity and sendNotification if not specified or "1"
     function checkActivity(token, machine, client, registration, payload, ttl) {
-      // XXX: this should be a hash per machine
       var machineKey = machine + ':clients';
       return redis.hget(machineKey, client)
       .then(function(isActive) {
@@ -295,21 +304,9 @@ app.post('/notify', function(req, res) {
           // client is active on this machine
           return sendNotification(token, registration, payload, ttl);
         }
+        // adding a client to the machine, '1' by default
         return redis.hmset(machineKey, client, 1)
-        .then(function() {
-          // adding a client to the machine, '1' by default
-          // check for multiple clients
-          return redis.sismember(token + ':clients', client)
-          .then(function(isMember) {
-            if (!isMember) {
-              return redis.sadd(token + ':clients', client)
-              .then(function() {
-                return sendNotification(token, registration, payload, ttl);
-              });
-            }
-            return sendNotification(token, registration, payload, ttl);
-          });
-        });
+        .then(() => sendNotification(token, registration, payload, ttl));
       });
     }
 
