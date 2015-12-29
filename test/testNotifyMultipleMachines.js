@@ -17,11 +17,11 @@ describe('mercurius (multiple-machines-)notify', function() {
   });
 
   it('sends notifications to multiple machines of a registered user', function(done) {
-    var first = nock('https://localhost:50006')
+    nock('https://localhost:50006')
     .post('/')
     .reply(201);
 
-    var second = nock('https://localhost:50005')
+    nock('https://localhost:50005')
     .post('/')
     .reply(201);
 
@@ -30,12 +30,7 @@ describe('mercurius (multiple-machines-)notify', function() {
     .send({
       token: token,
     })
-    .expect(200)
-    .end(function() {
-      should.equal(first.isDone(), true);
-      should.equal(second.isDone(), true);
-      done();
-    });
+    .expect(200, done);
   });
 
   it('returns `500` if there\'s a failure in sending a notifications to one of the machines of a registered user', function(done) {
