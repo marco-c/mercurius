@@ -39,4 +39,70 @@ describe('mercurius clients support', function() {
     })
     .end(done);
   });
+
+  it('toggle (disable) notifications for a client', function(done) {
+    request(mercurius.app)
+    .post('/toggleClientNotification')
+    .send({
+      token: token,
+      machineId: 'machineXZ',
+      client: 'clientXZ',
+    })
+    .expect(function(res) {
+      assert.equal(res.status, 200);
+      assert.equal(res.body.clients.length, 1);
+      assert.equal(res.body.clients.indexOf('clientXZ'), 0);
+      assert.equal(res.body.machines.machineXZ.clients.clientXZ, '0');
+    })
+    .end(done);
+  });
+
+  it('sends notifications to a machine from a client', function(done) {
+    var req = nock('https://localhost:50005')
+    .post('/')
+    .reply(201);
+
+    request(mercurius.app)
+    .post('/notify')
+    .send({
+      token: token,
+      client: 'clientXZ'
+    })
+    .expect(200, function() {
+      assert(!req.isDone(), 'Notification isn\'t sent do a disabled client');
+      nock.cleanAll();
+      done();
+    });
+  });
+
+  it('toggle (enable) notifications for a client', function(done) {
+    request(mercurius.app)
+    .post('/toggleClientNotification')
+    .send({
+      token: token,
+      machineId: 'machineXZ',
+      client: 'clientXZ',
+    })
+    .expect(function(res) {
+      assert.equal(res.status, 200);
+      assert.equal(res.body.clients.length, 1);
+      assert.equal(res.body.clients.indexOf('clientXZ'), 0);
+      assert.equal(res.body.machines.machineXZ.clients.clientXZ, '1');
+    })
+    .end(done);
+  });
+
+  it('sends notifications to a machine from a client', function(done) {
+    nock('https://localhost:50005')
+    .post('/')
+    .reply(201);
+
+    request(mercurius.app)
+    .post('/notify')
+    .send({
+      token: token,
+      client: 'clientXZ'
+    })
+    .expect(200, done);
+  });
 });
