@@ -136,7 +136,6 @@ app.post('/register', function(req, res) {
       endpoint: req.body.endpoint,
       key: req.body.key,
       name: req.body.name,
-      active: true
     });
   })
   .then(() => redis.sismember(token, machineId))
@@ -263,8 +262,7 @@ app.post('/updateMeta', function(req, res) {
     }
 
     return redis.hmset(machineId, {
-      "name": req.body.name,
-      "active": req.body.active
+      name: req.body.name,
     });
   })
   .then(() => res.sendStatus(200))
