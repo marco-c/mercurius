@@ -1,9 +1,18 @@
 var request = require('supertest');
 var nock = require('nock');
 var assert = require('assert');
+var redis = require('../redis.js');
 
 afterEach(function() {
   assert(nock.isDone(), 'All requests have been made. Pending: ' + nock.pendingMocks());
+});
+
+before(function() {
+  return redis.select(5);
+});
+
+after(function() {
+  return redis.flushdb();
 });
 
 module.exports = {
