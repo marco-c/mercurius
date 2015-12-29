@@ -122,7 +122,7 @@ function register() {
             domToken.textContent = token;
             drawBarcode(token);
             showSection('unregistrationForm');
-            showMachines(body.machines);
+            showMachines(token, body.machines, body.clients);
           } else {
             alert('Error: ' + token);
           }
@@ -145,14 +145,16 @@ function showSection(section) {
   }
 }
 
+function forceUnregister() {
+  domToken.textContent = '';
+  domTokenBarcode.style.display = 'none';
+  showSection('registrationForm');
+  localforage.removeItem('token');
+}
+
 domUnregister.onclick = function() {
   unregisterMachine(machineId)
-  .then(function(response) {
-    domToken.textContent = '';
-    domTokenBarcode.style.display = 'none';
-    showSection('registrationForm');
-    localforage.removeItem('token');
-  });
+  .then(forceUnregister);
 };
 
 function unregisterMachine(mId) {
@@ -179,41 +181,99 @@ function makeId(length) {
 }
 
 // create DOM Element for a device
-function showMachine(mId, device) {
-  var li = document.createElement('li');
+function showMachine(token, mId, device, clients) {
+  var tr = document.createElement('tr');
+  var td = document.createElement('td');
   var a = document.createElement('a');
-  li.textContent = (device.name || mId) + ' ';
+  td.classList.add('machine');
   a.textContent = '[x]';
   a.onclick = function() {
     unregisterMachine(mId)
     .then(function(response) {
       response.json()
       .then(function(body) {
-        showMachines(body.machines);
+        showMachines(token, body.machines, body.clients);
       });
     });
   };
-  li.appendChild(a);
-  domMachines.appendChild(li);
+  td.appendChild(a);
+  td.appendChild(document.createTextNode(' ' + (device.name || mId)));
+  tr.appendChild(td);
+  function toggleOnclick(ev) {
+    toggleMachineClientNotification(token, mId, ev.target.dataset.client)
+    .then(function(response) {
+      response.json()
+      .then(function(body) {
+        showMachines(token, body.machines, body.clients);
+      });
+    });
+  }
+  for (var i = 0; i < clients.length; i++) {
+    td = document.createElement('td');
+    td.dataset.client = clients[i];
+    td.onclick = toggleOnclick;
+    if (device.clients && device.clients[clients[i]] === '0') {
+      // machine is NOT receiving notifications from this client
+      td.classList.add('off');
+      td.textContent = 'off';
+    } else {
+      td.classList.add('on');
+      td.textContent = 'on';
+    }
+    tr.appendChild(td);
+  }
+  domMachines.appendChild(tr);
 }
 
 // clean machine list and call showMachine on each machine from the list
-function showMachines(deviceList) {
+function showMachines(token, deviceList, clientsList) {
   // delete everything in the list
   domMachines.innerHTML = "";
   // create the list
   for (var machineId in deviceList) {
-    showMachine(machineId, deviceList[machineId]);
+    showMachine(token, machineId, deviceList[machineId], clientsList);
   }
+  // create header
+  var head = document.createElement('thead');
+  var tr = document.createElement('tr');
+  tr.appendChild(document.createElement('td'));
+  for (var i = 0; i < clientsList.length; i++) {
+    var td = document.createElement('td');
+    td.textContent = clientsList[i];
+    tr.appendChild(td);
+  }
+  head.appendChild(tr);
+  domMachines.appendChild(head);
 }
 
 // load machines from the server
 function getMachines(token) {
   fetch('/devices/' + token)
   .then(function(response) {
+    if (response.status === 404) {
+      return forceUnregister();
+    }
     response.json()
     .then(function(body) {
-      showMachines(body.machines);
+      showMachines(token, body.machines, body.clients);
+    });
+  });
+}
+
+// toggle client notification per machine
+function toggleMachineClientNotification(token, machineId, client) {
+  return localforage.getItem('token')
+  .then(function(token) {
+    return fetch('./toggleClientNotification', {
+      method: 'post',
+      headers: {
+        'Content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        token: token,
+        machineId: machineId,
+        client: client
+      }),
     });
   });
 }
