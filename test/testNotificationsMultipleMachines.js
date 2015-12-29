@@ -24,11 +24,6 @@ describe('mercurius (multiple-machines-)notify', function() {
     });
   });
 
-  afterEach(function(done) {
-    nock.cleanAll();
-    done();
-  });
-
   it('sends notifications to multiple machines of a registered user', function(done) {
     var first = nock('https://localhost:50006')
     .post('/')

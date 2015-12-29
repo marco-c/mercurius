@@ -9,7 +9,6 @@ describe('mercurius clients support', function() {
 
   before(function(done) {
     mercurius.ready.then(function() {
-      console.log('YYY: registering');
       request(mercurius.app)
       .post('/register')
       .send({
@@ -29,7 +28,6 @@ describe('mercurius clients support', function() {
     .post('/')
     .reply(201);
 
-    console.log('YYY: notification');
     request(mercurius.app)
     .post('/notify')
     .send({
