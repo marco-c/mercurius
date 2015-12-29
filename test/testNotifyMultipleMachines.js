@@ -2,26 +2,18 @@ var mercurius = require('../index.js');
 var request = require('supertest');
 var nock = require('nock');
 var chai = require('chai');
+var testUtils = require('./testUtils.js');
 
 var should = chai.should();
 
 describe('mercurius (multiple-machines-)notify', function() {
   var token;
 
-  before(function(done) {
-    mercurius.ready.then(function() {
-      request(mercurius.app)
-      .post('/register')
-      .send({
-        machineId: 'machineZ',
-        endpoint: 'https://localhost:50005',
-        key: 'key',
-      })
-      .expect(function(res) {
-        token = res.body.token;
-      })
-      .end(done);
-    });
+  before(function() {
+    return mercurius.ready
+    .then(() => testUtils.register(mercurius.app, 'machineZ', 'https://localhost:50005', 'key'))
+    .then(gotToken => token = gotToken)
+    .then(() => testUtils.register(mercurius.app, 'machineZ2', 'https://localhost:50006', 'key', token));
   });
 
   it('sends notifications to multiple machines of a registered user', function(done) {
@@ -33,25 +25,16 @@ describe('mercurius (multiple-machines-)notify', function() {
     .post('/')
     .reply(201);
 
-    var agent = request(mercurius.app);
-    agent.post('/register')
+    request(mercurius.app)
+    .post('/notify')
     .send({
       token: token,
-      machineId: 'machineZ2',
-      endpoint: 'https://localhost:50006',
-      key: 'key',
     })
+    .expect(200)
     .end(function() {
-      agent.post('/notify')
-      .send({
-        token: token,
-      })
-      .expect(200)
-      .end(function() {
-        should.equal(first.isDone(), true);
-        should.equal(second.isDone(), true);
-        done();
-      });
+      should.equal(first.isDone(), true);
+      should.equal(second.isDone(), true);
+      done();
     });
   });
 

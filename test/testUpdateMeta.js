@@ -1,26 +1,16 @@
 var mercurius = require('../index.js');
 var request = require('supertest');
-var assert = require('assert');
 var nock = require('nock');
 var redis = require('../redis.js');
+var testUtils = require('./testUtils.js');
 
 describe('mercurius updateMeta', function() {
   var token;
 
-  before(function(done) {
-    mercurius.ready.then(function() {
-      request(mercurius.app)
-      .post('/register')
-      .send({
-        machineId: 'machineX',
-        endpoint: 'https://localhost:50005',
-        key: 'key',
-      })
-      .expect(function(res) {
-        token = res.body.token;
-      })
-      .end(done);
-    });
+  before(function() {
+    return mercurius.ready
+    .then(() => testUtils.register(mercurius.app, 'machineX', 'https://localhost:50005', 'key'))
+    .then(gotToken => token = gotToken);
   });
 
   it('updates the metadata successfully', function(done) {
