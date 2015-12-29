@@ -78,7 +78,7 @@ function sendMachines(res, token) {
   .then(() => res.send({
     token: token,
     machines: machines,
-    clients: clients
+    clients: clients,
   }));
 }
 
@@ -136,7 +136,6 @@ app.post('/register', function(req, res) {
       endpoint: req.body.endpoint,
       key: req.body.key,
       name: req.body.name,
-      active: true
     });
   })
   .then(() => redis.sismember(token, machineId))
@@ -203,7 +202,7 @@ app.post('/unregisterMachine', function(req, res) {
 
       var payload = JSON.stringify({
         title: 'unregister',
-        body: 'called from unregisterMachine'
+        body: 'called from unregisterMachine',
       });
 
       return sendNotification(token, registration, payload);
@@ -235,8 +234,8 @@ app.post('/updateRegistration', function(req, res) {
     }
 
     return redis.hmset(machineId, {
-      "endpoint": req.body.endpoint,
-      "key": req.body.key
+      endpoint: req.body.endpoint,
+      key: req.body.key,
     });
   })
   .then(() => res.sendStatus(200))
@@ -263,8 +262,7 @@ app.post('/updateMeta', function(req, res) {
     }
 
     return redis.hmset(machineId, {
-      "name": req.body.name,
-      "active": req.body.active
+      name: req.body.name,
     });
   })
   .then(() => res.sendStatus(200))
