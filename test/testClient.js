@@ -2,25 +2,15 @@ var mercurius = require('../index.js');
 var request = require('supertest');
 var assert = require('assert');
 var nock = require('nock');
-var crypto = require('crypto');
+var testUtils = require('./testUtils.js');
 
 describe('mercurius clients support', function() {
   var token;
 
-  before(function(done) {
-    mercurius.ready.then(function() {
-      request(mercurius.app)
-      .post('/register')
-      .send({
-        machineId: 'machineXZ',
-        endpoint: 'https://localhost:50005',
-        key: 'key',
-      })
-      .expect(function(res) {
-        token = res.body.token;
-      })
-      .end(done);
-    });
+  before(function() {
+    return mercurius.ready
+    .then(() => testUtils.register(mercurius.app, 'machineXZ', 'https://localhost:50005', ''))
+    .then(gotToken => token = gotToken);
   });
 
   it('sends notifications to a machine from a client', function(done) {
