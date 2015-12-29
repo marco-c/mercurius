@@ -344,12 +344,11 @@ app.post('/toggleClientNotification', function(req, res) {
   var machineId = req.body.machineId;
   var client = req.body.client;
   var machineKey = machineId + ':clients';
+
   redis.hget(machineKey, client)
-  .then(function(active) {
-    redis.hmset(machineKey, client, (active === '0' ? '1' : '0'))
-    .then(() => sendMachines(res, token))
-    .catch(err => handleError(res, err));
-  });
+  .then(active => redis.hmset(machineKey, client, (active === '0' ? '1' : '0')))
+  .then(() => sendMachines(res, token))
+  .catch(err => handleError(res, err));
 });
 
 webPush.setGCMAPIKey(process.env.GCM_API_KEY);
