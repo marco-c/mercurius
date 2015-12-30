@@ -1,6 +1,12 @@
 language: node_js
 node_js:
-- '4'
+  - '4'
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - g++-4.8
 deploy:
   provider: heroku
   api_key:
@@ -11,5 +17,6 @@ deploy:
     repo: marco-c/mercurius
     branch: master
 env:
+  - CXX=g++-4.8
   REDISCLOUD_URL: redis://localhost:6379
 before_script: redis-server /etc/redis/redis.conf --port 6379
