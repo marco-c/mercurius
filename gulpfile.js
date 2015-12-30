@@ -3,10 +3,9 @@ var fse = require('fs-extra');
 var jshint = require('gulp-jshint');
 var oghliner = require('oghliner');
 
-gulp.task('clean', function(done) {
+gulp.task('clean', function() {
   fse.removeSync('dist');
   fse.mkdirSync('dist');
-  done();
 });
 
 var ignore = ['!./dist/**', '!./node_modules/**', '!./coverage/**'];
