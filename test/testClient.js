@@ -105,4 +105,15 @@ describe('mercurius clients support', function() {
     })
     .expect(200, done);
   });
+
+  it('toggle notifications for a client of a non-existing token', function(done) {
+    request(mercurius.app)
+    .post('/toggleClientNotification')
+    .send({
+      token: 'notexisting',
+      machineId: 'machineXZ',
+      client: 'clientXZ',
+    })
+    .expect(404, done);
+  });
 });
