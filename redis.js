@@ -5,7 +5,7 @@ var client = redis.createClient(process.env.REDISCLOUD_URL, {no_ready_check: tru
 commands = {};
 
 ['set', 'get', 'del', 'exists', 'sismember', 'hmset', 'hget', 'smembers',
- 'sadd', 'hgetall', 'srem']
+ 'sadd', 'hgetall', 'srem', 'select', 'flushdb']
 .map(function(name) {
   commands[name] = function() {
     var args = Array.prototype.slice.call(arguments);
