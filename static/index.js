@@ -134,7 +134,7 @@ function register() {
 
 domRegister.onclick = register;
 
-var sections = ['registrationForm', 'unregistrationForm', 'unsupported'];
+var sections = ['registrationForm', 'unregistrationForm', 'unsupported', 'offline'];
 function showSection(section) {
   for (var index = 0; index < sections.length; index++) {
     if (sections[index] === section) {
@@ -284,6 +284,21 @@ if (navigator.serviceWorker) {
   showSection('unsupported');
 }
 
+window.addEventListener('online', function() {
+  localforage.getItem('token')
+  .then(function(token) {
+    if (token) {
+      showSection('unregistrationForm');
+    } else {
+      showSection('registrationForm');
+    }
+  });
+});
+
+window.addEventListener('offline', function() {
+  showSection('offline');
+});
+
 window.onload = function() {
   if (!navigator.serviceWorker) {
     return;
@@ -299,21 +314,26 @@ window.onload = function() {
     }
   })
   .then(function() {
-    localforage.getItem('token')
+    return localforage.getItem('token')
     .then(function(token) {
       if (token) {
         showSection('unregistrationForm');
         domToken.textContent = token;
         drawBarcode(token);
-        localforage.getItem('machineName')
+        return localforage.getItem('machineName')
         .then(function(mName) {
           machineName = mName;
           domShowMachineName.textContent = machineName || machineId;
+          getMachines(token);
         });
-        getMachines(token);
       } else {
         showSection('registrationForm');
       }
     });
+  })
+  .then(function() {
+    if (!navigator.onLine) {
+      showSection('offline');
+    }
   });
 };
