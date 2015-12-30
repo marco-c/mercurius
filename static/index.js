@@ -279,7 +279,7 @@ function toggleMachineClientNotification(token, machineId, client) {
 }
 
 if (navigator.serviceWorker) {
-  navigator.serviceWorker.register('service-worker.js');
+  navigator.serviceWorker.register('offline-worker.js');
 } else {
   showSection('unsupported');
 }
