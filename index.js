@@ -160,9 +160,14 @@ app.post('/unregister', function(req, res) {
       throw new Error('Not Found');
     }
 
-    return Promise.all(machines.map(machine => redis.del(machine)));
+    console.log('XXX: deleting ' + token);
+    return Promise.all(machines.map(machine => redis.del(machine)))
+    .then(function() {
+      return Promise.all(machines.map(machine => redis.del(machine + ':clients')));
+    });
   })
   .then(() => redis.del(token))
+  .then(() => redis.del(token + ':clients'))
   .then(() => res.sendStatus(200))
   .catch(err => handleError(res, err));
 });
@@ -272,25 +277,26 @@ app.post('/updateMeta', function(req, res) {
 app.post('/notify', function(req, res) {
   var token = req.body.token;
 
-  // if a machine registers to a different token its active clients would
-  // need to be added again to the list
-  redis.sismember(token + ':clients', req.body.client)
-  .then(function(isMember) {
-    if (!isMember) {
-      return redis.sadd(token + ':clients', req.body.client);
-    }
-  })
-  .then(function() {
-    return redis.smembers(token);
-  })
+  redis.smembers(token)
   .then(function(machines) {
+    var client = req.body.client;
+
     // send notification to all machines assigned to `token`
     if (!machines || machines.length === 0) {
       throw new Error('Not Found');
     }
 
+    // if a machine registers to a different token its active clients would
+    // need to be added again to the list
+    redis.sismember(token + ':clients', client)
+    .then(function(isMember) {
+      if (!isMember) {
+        return redis.sadd(token + ':clients', client);
+      }
+    });
+
     // check activity and sendNotification if not specified or "1"
-    function checkActivity(token, machine, client, registration, payload, ttl) {
+    function checkActivity(machine, registration, payload, ttl) {
       var machineKey = machine + ':clients';
       return redis.hget(machineKey, client)
       .then(function(isActive) {
@@ -310,7 +316,7 @@ app.post('/notify', function(req, res) {
 
     var promises = machines.map(function(machine) {
       return redis.hgetall(machine)
-      .then(registration => checkActivity(token, machine, req.body.client, registration, JSON.stringify(req.body.payload), req.body.ttl));
+      .then(registration => checkActivity(machine, registration, JSON.stringify(req.body.payload), req.body.ttl));
     });
 
     return Promise.all(promises);
