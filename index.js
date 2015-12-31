@@ -160,7 +160,7 @@ app.post('/unregister', function(req, res) {
       throw new Error('Not Found');
     }
 
-    console.log('XXX: deleting ' + token);
+    console.log('DEBUG: Deleting ' + token);
     return Promise.all(machines.map(machine => redis.del(machine, machine + ':clients')));
   })
   .then(() => redis.del(token))
