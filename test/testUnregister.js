@@ -51,27 +51,22 @@ describe('mercurius unregister', function() {
     .expect(404, done);
   });
 
-  it('deletes all token related data after a registration has been removed', function(done) {
-    redis.exists(token)
+  it('deletes all token related data after a registration has been removed', function() {
+    return redis.exists(token)
     .then(function(exists) {
       exists.should.equal(0);
       return redis.exists(token + ':clients');
     })
-    .catch(done)
     .then(function(exists) {
       exists.should.equal(0);
       return redis.exists('machine_1');
     })
-    .catch(done)
     .then(function(exists) {
       exists.should.equal(0);
       return redis.exists('machine_1:clients');
     })
-    .catch(done)
     .then(function(exists) {
       exists.should.equal(0);
-      done();
-    })
-    .catch(done);
+    });
   });
 });
