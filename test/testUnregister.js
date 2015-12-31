@@ -55,7 +55,6 @@ describe('mercurius unregister', function() {
     redis.exists(token)
     .then(function(exists) {
       exists.should.equal(0);
-      console.log('ZZZ: checking ' + token);
       return redis.exists(token + ':clients');
     })
     .catch(done)

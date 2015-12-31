@@ -161,10 +161,7 @@ app.post('/unregister', function(req, res) {
     }
 
     console.log('XXX: deleting ' + token);
-    return Promise.all(machines.map(machine => redis.del(machine)))
-    .then(function() {
-      return Promise.all(machines.map(machine => redis.del(machine + ':clients')));
-    });
+    return Promise.all(machines.map(machine => redis.del(machine, machine + ':clients')));
   })
   .then(() => redis.del(token))
   .then(() => redis.del(token + ':clients'))
