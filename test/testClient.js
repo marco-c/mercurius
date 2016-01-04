@@ -116,4 +116,22 @@ describe('mercurius clients support', function() {
     })
     .expect(404, done);
   });
+
+  it('fails to toggle notifications for a client of an unregistered token', function(done) {
+    request(mercurius.app)
+    .post('/unregister')
+    .send({
+      token: token,
+    })
+    .expect(200, function() {
+      request(mercurius.app)
+      .post('/toggleClientNotification')
+      .send({
+        token: token,
+        machineId: 'machineXZ',
+        client: 'clientXZ',
+      })
+      .expect(404, done);
+    });
+  });
 });
