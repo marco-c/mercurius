@@ -40,7 +40,7 @@ describe('mercurius clients support', function() {
     .end(done);
   });
 
-  it('toggle (disable) notifications for a client', function(done) {
+  it('toggles (disables) notifications for a client', function(done) {
     request(mercurius.app)
     .post('/toggleClientNotification')
     .send({
@@ -75,7 +75,7 @@ describe('mercurius clients support', function() {
     });
   });
 
-  it('toggle (enable) notifications for a client', function(done) {
+  it('toggles (enables) notifications for a client', function(done) {
     request(mercurius.app)
     .post('/toggleClientNotification')
     .send({
@@ -106,7 +106,7 @@ describe('mercurius clients support', function() {
     .expect(200, done);
   });
 
-  it('toggle notifications for a client of a non-existing token', function(done) {
+  it('fails to toggle notifications for a client of a non-existing token', function(done) {
     request(mercurius.app)
     .post('/toggleClientNotification')
     .send({
