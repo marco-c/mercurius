@@ -151,20 +151,27 @@ app.post('/register', function(req, res) {
 });
 
 // remove entire token set and all its machines
-app.post('/unregister', function(req, res) {
-  var token = req.body.token;
-
-  redis.smembers(token)
+function deleteToken(token) {
+  return redis.smembers(token)
   .then(function(machines) {
-    if (!machines || machines.length === 0) {
-      throw new Error('Not Found');
-    }
-
-    console.log('DEBUG: Deleting ' + token);
+    console.log('DEBUG: Deleting token ' + token);
     return Promise.all(machines.map(machine => redis.del(machine, machine + ':clients')));
   })
   .then(() => redis.del(token))
-  .then(() => redis.del(token + ':clients'))
+  .then(() => redis.del(token + ':clients'));
+}
+
+// unregister token and related data
+app.post('/unregister', function(req, res) {
+  var token = req.body.token;
+
+  redis.exists(token).
+  then(function(exists) {
+    if (!exists) {
+      throw new Error('Not Found');
+    }
+  })
+  .then(() => deleteToken(token))
   .then(() => res.sendStatus(200))
   .catch(err => handleError(res, err));
 });
@@ -184,31 +191,33 @@ app.post('/unregisterMachine', function(req, res) {
   var token = req.body.token;
   var machineId = req.body.machineId;
 
+  console.log('DEBUG: unregistering machine', machineId);
   redis.exists(token)
-  .then(function(result) {
-    if (!result) {
+  .then(function(exists) {
+    if (!exists) {
       throw new Error('Not Found');
     }
-
     return redis.hgetall(machineId);
   })
   .then(function(registration) {
     if (!registration) {
       throw new Error('Not Found');
     }
-
-    return redis.del(machineId)
-    .then(() => redis.srem(token, machineId))
-    .then(function() {
-      // send notification to an endpoint to unregister itself
-
-      var payload = JSON.stringify({
-        title: 'unregister',
-        body: 'called from unregisterMachine',
-      });
-
-      return sendNotification(token, registration, payload);
+    // send notification to an endpoint to unregister itself
+    var payload = JSON.stringify({
+      title: 'unregister',
+      body: 'called from unregisterMachine',
     });
+    return sendNotification(token, registration, payload);
+  })
+  .then(() => redis.srem(token, machineId))
+  .then(() => redis.del(machineId))
+  .then(() => redis.del(machineId + ':clients'))
+  .then(() => redis.smembers(token))
+  .then(function(machines) {
+    if (machines.length === 0) {
+      return deleteToken(token);
+    }
   })
   .then(() => sendMachines(res, token))
   .catch(err => handleError(res, err));
