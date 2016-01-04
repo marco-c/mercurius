@@ -134,7 +134,7 @@ function register() {
 
 domRegister.onclick = register;
 
-var sections = ['registrationForm', 'unregistrationForm', 'unsupported'];
+var sections = ['registrationForm', 'unregistrationForm', 'unsupported', 'offline'];
 function showSection(section) {
   for (var index = 0; index < sections.length; index++) {
     if (sections[index] === section) {
@@ -278,11 +278,52 @@ function toggleMachineClientNotification(token, machineId, client) {
   });
 }
 
+function updateFound() {
+  var installingWorker = this.installing;
+
+  // Wait for the new service worker to be installed before prompting to update.
+  installingWorker.addEventListener('statechange', function() {
+    switch (installingWorker.state) {
+      case 'installed':
+        // Only show the prompt if there is currently a controller so it is not
+        // shown on first load.
+        if (navigator.serviceWorker.controller &&
+            window.confirm('An updated version of this page is available, would you like to update?')) {
+          window.location.reload();
+          return;
+        }
+        break;
+
+      case 'redundant':
+        console.error('The installing service worker became redundant.');
+        break;
+    }
+  });
+}
+
 if (navigator.serviceWorker) {
-  navigator.serviceWorker.register('service-worker.js');
+  navigator.serviceWorker.register('offline-worker.js')
+  .then(function(registration) {
+    registration.addEventListener('updatefound', updateFound);
+  });
 } else {
   showSection('unsupported');
 }
+
+window.addEventListener('online', function() {
+  localforage.getItem('token')
+  .then(function(token) {
+    if (token) {
+      showSection('unregistrationForm');
+    } else {
+      showSection('registrationForm');
+    }
+  });
+});
+
+window.addEventListener('offline', function() {
+  showSection('offline');
+});
 
 window.onload = function() {
   if (!navigator.serviceWorker) {
@@ -299,21 +340,26 @@ window.onload = function() {
     }
   })
   .then(function() {
-    localforage.getItem('token')
+    return localforage.getItem('token')
     .then(function(token) {
       if (token) {
         showSection('unregistrationForm');
         domToken.textContent = token;
         drawBarcode(token);
-        localforage.getItem('machineName')
+        return localforage.getItem('machineName')
         .then(function(mName) {
           machineName = mName;
           domShowMachineName.textContent = machineName || machineId;
+          getMachines(token);
         });
-        getMachines(token);
       } else {
         showSection('registrationForm');
       }
     });
+  })
+  .then(function() {
+    if (!navigator.onLine) {
+      showSection('offline');
+    }
   });
 };
