@@ -26,7 +26,7 @@ describe('mercurius unregisterMachine', function() {
   });
 
   it('created the machines properly', function() {
-    redis.exists(token)
+    return redis.exists(token)
     .then(function(exists) {
       exists.should.equal(1);
       return redis.exists(token + ':clients');
