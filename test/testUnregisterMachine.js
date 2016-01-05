@@ -81,6 +81,29 @@ describe('mercurius unregisterMachine', function() {
     .expect(200, done);
   });
 
+  it('doesn\'t send notifications to unregistered machines but sends them to machines of the same token set of an unregistered machine', function(done) {
+    var req1 = nock('https://android.googleapis.com/')
+    .post('/gcm/send')
+    .reply(200);
+
+    var req2 = nock('https://localhost:50005')
+    .post('/')
+    .reply(201);
+
+    request(mercurius.app)
+    .post('/notify')
+    .send({
+      token: token,
+      client: 'aClient',
+    })
+    .expect(200, function() {
+      assert(!req1.isDone(), 'Notification isn\'t sent do an unregistered machine');
+      assert(req2.isDone(), 'Notification is sent do a machine in the same token set of an unregistered machine');
+      nock.cleanAll();
+      done();
+    });
+  });
+
   it('replies with the payload encoded in JSON on `getPayload` if there\'s a payload available', function(done) {
     request(mercurius.app)
     .get('/getPayload/' + token)
