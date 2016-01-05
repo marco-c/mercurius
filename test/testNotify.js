@@ -59,4 +59,14 @@ describe('mercurius notify', function() {
     })
     .expect(200, done);
   });
+
+  it('sends a notification without payload to a registered user', function(done) {
+    request(mercurius.app)
+    .post('/notify')
+    .send({
+      token: token,
+      client: 'test',
+    })
+    .expect(500, done);
+  });
 });
