@@ -19,10 +19,18 @@ describe('mercurius unregisterMachine', function() {
   var token;
 
   before(function() {
+    nock('https://localhost:50005')
+    .post('/')
+    .reply(201);
+
+    nock('https://android.googleapis.com/')
+    .post('/gcm/send')
+    .reply(200);
+
     return mercurius.ready
     .then(() => testUtils.register(mercurius.app, 'machine_1', 'https://android.googleapis.com/gcm/send/someSubscriptionID', ''))
     .then(gotToken => token = gotToken)
-    .then(() => testUtils.register(mercurius.app, 'machine_2', 'https://localhost:50005', urlBase64.encode(userPublicKey), token, '/'));
+    .then(() => testUtils.register(mercurius.app, 'machine_2', 'https://localhost:50005', urlBase64.encode(userPublicKey), token, true));
   });
 
   it('created the machines properly', function() {
