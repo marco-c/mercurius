@@ -29,6 +29,7 @@ describe('mercurius (multiple-machines-)notify', function() {
     .post('/notify')
     .send({
       token: token,
+      client: 'aClient',
       payload: 'hello',
     })
     .expect(200, done);
@@ -47,6 +48,7 @@ describe('mercurius (multiple-machines-)notify', function() {
     .post('/notify')
     .send({
       token: token,
+      client: 'aClient',
       payload: 'hello',
     })
     .expect(500, done);

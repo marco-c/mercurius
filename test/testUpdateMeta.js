@@ -31,6 +31,7 @@ describe('mercurius updateMeta', function() {
       .post('/notify')
       .send({
         token: token,
+        client: 'aClient',
         payload: 'hello',
       })
       .expect(200, done);
