@@ -183,20 +183,26 @@ function makeId(length) {
 // create DOM Element for a device
 function showMachine(token, mId, device, clients) {
   var tr = document.createElement('tr');
+  if (mId === machineId) {
+    tr.classList.add('currentMachine');
+  }
   var td = document.createElement('td');
   var a = document.createElement('a');
   td.classList.add('machine');
-  a.textContent = '[x]';
-  a.onclick = function() {
-    unregisterMachine(mId)
-    .then(function(response) {
-      response.json()
-      .then(function(body) {
-        showMachines(token, body.machines, body.clients);
+  // unregister current machine only by using a button
+  if (mId !== machineId) {
+    a.textContent = '[x]';
+    a.onclick = function() {
+      unregisterMachine(mId)
+      .then(function(response) {
+        response.json()
+        .then(function(body) {
+          showMachines(token, body.machines, body.clients);
+        });
       });
-    });
-  };
-  td.appendChild(a);
+    };
+    td.appendChild(a);
+  }
   td.appendChild(document.createTextNode(' ' + (device.name || mId)));
   tr.appendChild(td);
   function toggleOnclick(ev) {
@@ -250,9 +256,6 @@ function showMachines(token, deviceList, clientsList) {
 function getMachines(token) {
   fetch('/devices/' + token)
   .then(function(response) {
-    if (response.status === 404) {
-      return forceUnregister();
-    }
     response.json()
     .then(function(body) {
       showMachines(token, body.machines, body.clients);

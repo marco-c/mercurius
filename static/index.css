@@ -108,6 +108,11 @@ h3 a {
 	display: none;
 }
 
+#machines tr.currentMachine td.machine {
+	font-weight: bold;
+	padding-left: 2em;
+}
+
 #machines td {
    text-align: center;
 }

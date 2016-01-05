@@ -5,6 +5,10 @@ var nock = require('nock');
 var crypto = require('crypto');
 var urlBase64 = require('urlsafe-base64');
 var testUtils = require('./testUtils.js');
+var redis = require('../redis.js');
+var chai = require('chai');
+
+chai.should();
 
 var userCurve = crypto.createECDH('prime256v1');
 
@@ -18,8 +22,42 @@ describe('mercurius unregisterMachine', function() {
     return mercurius.ready
     .then(() => testUtils.register(mercurius.app, 'machine_1', 'https://android.googleapis.com/gcm/send/someSubscriptionID', ''))
     .then(gotToken => token = gotToken)
-    .then(() => testUtils.register(mercurius.app, 'machine_2', 'https://localhost:50005', urlBase64.encode(userPublicKey), token))
-    .then(() => testUtils.register(mercurius.app, 'machine_3', 'https://localhost:50006', urlBase64.encode(userPublicKey), token));
+    .then(() => testUtils.register(mercurius.app, 'machine_2', 'https://localhost:50005', urlBase64.encode(userPublicKey), token, '/'));
+  });
+
+  it('created the machines properly', function() {
+    redis.exists(token)
+    .then(function(exists) {
+      exists.should.equal(1);
+      return redis.exists(token + ':clients');
+    })
+    .then(function(exists) {
+      exists.should.equal(1);
+      return redis.exists('machine_2:clients');
+    })
+    .then(function(exists) {
+      exists.should.equal(1);
+    });
+  });
+
+  it('replies with 404 when trying to unregister a non existing token', function(done) {
+    request(mercurius.app)
+    .post('/unregisterMachine')
+    .send({
+      token: 'nonexistingtoken',
+      machineId: 'machine',
+    })
+    .expect(404, done);
+  });
+
+  it('replies with 404 when trying to unregister a non registered machine', function(done) {
+    request(mercurius.app)
+    .post('/unregisterMachine')
+    .send({
+      token: token,
+      machineId: 'non-existing-machine',
+    })
+    .expect(404, done);
   });
 
   it('replies with 404 on `getPayload` if there\'s no payload available', function(done) {
@@ -56,6 +94,13 @@ describe('mercurius unregisterMachine', function() {
     .end(done);
   });
 
+  it('hasn\'t deleted a token after unregistering the first machine', function() {
+    return redis.exists(token)
+    .then(function(exists) {
+      exists.should.equal(1);
+    });
+  });
+
   it('successfully unregisters a machine', function(done) {
     nock('https://localhost:50005')
     .post('/')
@@ -70,23 +115,23 @@ describe('mercurius unregisterMachine', function() {
     .expect(200, done);
   });
 
-  it('replies with 404 when trying to unregister a non existing token', function(done) {
-    request(mercurius.app)
-    .post('/unregisterMachine')
-    .send({
-      token: 'nonexistingtoken',
-      machineId: 'machine',
+  it('deletes machine\'s clients object after removing the machine', function(done) {
+    redis.exists('machine_1:clients')
+    .then(function(exists) {
+      exists.should.equal(0);
+      done();
     })
-    .expect(404, done);
+    .catch(done);
   });
 
-  it('replies with 404 when trying to unregister a non registered machine', function(done) {
-    request(mercurius.app)
-    .post('/unregisterMachine')
-    .send({
-      token: token,
-      machineId: 'non-existing-machine',
+  it('deletes token after unregistering the last machine', function() {
+    return redis.exists(token)
+    .then(function(exists) {
+      exists.should.equal(0);
+      return redis.exists(token + ':clients');
     })
-    .expect(404, done);
+    .then(function(exists) {
+      exists.should.equal(0);
+    });
   });
 });

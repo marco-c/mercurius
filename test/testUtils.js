@@ -16,9 +16,15 @@ after(function() {
 });
 
 module.exports = {
-  register: function(app, machine, endpoint, key, existingToken) {
+  register: function(app, machine, endpoint, key, existingToken, notifyURL) {
     return new Promise(function(resolve, reject) {
       var token;
+
+      if (notifyURL) {
+        nock(endpoint)
+        .post(notifyURL)
+        .reply(201);
+      }
 
       request(app)
       .post('/register')
@@ -32,7 +38,19 @@ module.exports = {
         token = res.body.token;
       })
       .end(function() {
-        resolve(token);
+        if (!notifyURL) {
+          resolve(token);
+          return;
+        }
+        return request(app)
+        .post('/notify')
+        .send({
+          token: token,
+          client: 'test',
+        })
+        .end(function() {
+          resolve(token);
+        });
       });
     });
   },
