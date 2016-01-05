@@ -115,13 +115,11 @@ describe('mercurius unregisterMachine', function() {
     .expect(200, done);
   });
 
-  it('deletes machine\'s clients object after removing the machine', function(done) {
-    redis.exists('machine_1:clients')
+  it('deletes machine\'s clients object after removing the machine', function() {
+    return redis.exists('machine_1:clients')
     .then(function(exists) {
       exists.should.equal(0);
-      done();
-    })
-    .catch(done);
+    });
   });
 
   it('deletes token after unregistering the last machine', function() {
