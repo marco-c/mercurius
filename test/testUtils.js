@@ -16,15 +16,9 @@ after(function() {
 });
 
 module.exports = {
-  register: function(app, machine, endpoint, key, existingToken, notifyURL) {
+  register: function(app, machine, endpoint, key, existingToken, doNotify) {
     return new Promise(function(resolve, reject) {
       var token;
-
-      if (notifyURL) {
-        nock(endpoint)
-        .post(notifyURL)
-        .reply(201);
-      }
 
       request(app)
       .post('/register')
@@ -38,10 +32,11 @@ module.exports = {
         token = res.body.token;
       })
       .end(function() {
-        if (!notifyURL) {
+        if (!doNotify) {
           resolve(token);
           return;
         }
+
         return request(app)
         .post('/notify')
         .send({
