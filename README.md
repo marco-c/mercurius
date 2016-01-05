@@ -12,6 +12,7 @@ Send a notification to a user.
 
 The body of the request is a JSON object containing:
  - token;
+ - client - the client sending the notification (e.g. 'Irssi');
  - payload;
  - *(optional)* TTL (Time-To-Live of the notification).
 
