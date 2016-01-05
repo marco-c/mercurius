@@ -22,9 +22,22 @@ describe('mercurius unregisterMachine', function() {
     return mercurius.ready
     .then(() => testUtils.register(mercurius.app, 'machine_1', 'https://android.googleapis.com/gcm/send/someSubscriptionID', ''))
     .then(gotToken => token = gotToken)
-    .then(() => testUtils.register(mercurius.app, 'machine_2', 'https://localhost:50005', urlBase64.encode(userPublicKey), token))
-    .then(() => redis.sadd(token + ':clients', 'someClient'))
-    .then(() => redis.hmset('machine_1:clients', 'someClient', 1));
+    .then(() => testUtils.register(mercurius.app, 'machine_2', 'https://localhost:50005', urlBase64.encode(userPublicKey), token, '/'));
+  });
+
+  it('created the machines properly', function() {
+    redis.exists(token)
+    .then(function(exists) {
+      exists.should.equal(1);
+      return redis.exists(token + ':clients');
+    })
+    .then(function(exists) {
+      exists.should.equal(1);
+      return redis.exists('machine_2:clients');
+    })
+    .then(function(exists) {
+      exists.should.equal(1);
+    });
   });
 
   it('replies with 404 when trying to unregister a non existing token', function(done) {
@@ -81,6 +94,13 @@ describe('mercurius unregisterMachine', function() {
     .end(done);
   });
 
+  it('hasn\'t deleted a token after unregistering the first machine', function() {
+    return redis.exists(token)
+    .then(function(exists) {
+      exists.should.equal(1);
+    });
+  });
+
   it('successfully unregisters a machine', function(done) {
     nock('https://localhost:50005')
     .post('/')
@@ -92,7 +112,7 @@ describe('mercurius unregisterMachine', function() {
       token: token,
       machineId: 'machine_2',
     })
-    .expect(404, done);
+    .expect(200, done);
   });
 
   it('deletes machine\'s clients object after removing the machine', function(done) {
@@ -104,17 +124,14 @@ describe('mercurius unregisterMachine', function() {
     .catch(done);
   });
 
-  it('deletes token after unregistering the last machine', function(done) {
-    redis.exists(token)
+  it('deletes token after unregistering the last machine', function() {
+    return redis.exists(token)
     .then(function(exists) {
       exists.should.equal(0);
       return redis.exists(token + ':clients');
     })
-    .catch(done)
     .then(function(exists) {
       exists.should.equal(0);
-      done();
-    })
-    .catch(done);
+    });
   });
 });

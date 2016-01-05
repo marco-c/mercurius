@@ -52,10 +52,6 @@ function sendMachines(res, token) {
 
   return redis.smembers(token)
   .then(function(ids) {
-    if (!ids || ids.length === 0) {
-      throw new Error('Not Found');
-    }
-
     var promises = ids.map(function(machineId) {
       return redis.hgetall(machineId)
       .then(function(machine) {
@@ -104,7 +100,14 @@ function handleError(res, err) {
 }
 
 app.get('/devices/:token', function(req, res) {
-  return sendMachines(res, req.params.token)
+  var token = req.params.token;
+  redis.exists(token)
+  .then(function(exists) {
+    if (!exists) {
+      throw new Error('Not Found');
+    }
+    return sendMachines(res, token);
+  })
   .catch(err => handleError(res, err));
 });
 
@@ -165,8 +168,8 @@ function deleteToken(token) {
 app.post('/unregister', function(req, res) {
   var token = req.body.token;
 
-  redis.exists(token).
-  then(function(exists) {
+  redis.exists(token)
+  .then(function(exists) {
     if (!exists) {
       throw new Error('Not Found');
     }
@@ -355,7 +358,13 @@ app.post('/toggleClientNotification', function(req, res) {
   var client = req.body.client;
   var machineKey = machineId + ':clients';
 
-  redis.hget(machineKey, client)
+  redis.exists(token)
+  .then(function(exists) {
+    if (!exists) {
+      throw new Error('Not Found');
+    }
+  })
+  .then(() => redis.hget(machineKey, client))
   .then(active => redis.hmset(machineKey, client, (active === '0' ? '1' : '0')))
   .then(() => sendMachines(res, token))
   .catch(err => handleError(res, err));
