@@ -19,10 +19,18 @@ describe('mercurius unregisterMachine', function() {
   var token;
 
   before(function() {
+    nock('https://localhost:50005')
+    .post('/')
+    .reply(201);
+
+    nock('https://android.googleapis.com/')
+    .post('/gcm/send')
+    .reply(200);
+
     return mercurius.ready
     .then(() => testUtils.register(mercurius.app, 'machine_1', 'https://android.googleapis.com/gcm/send/someSubscriptionID', ''))
     .then(gotToken => token = gotToken)
-    .then(() => testUtils.register(mercurius.app, 'machine_2', 'https://localhost:50005', urlBase64.encode(userPublicKey), token, '/'));
+    .then(() => testUtils.register(mercurius.app, 'machine_2', 'https://localhost:50005', urlBase64.encode(userPublicKey), token, true));
   });
 
   it('created the machines properly', function() {
@@ -79,6 +87,29 @@ describe('mercurius unregisterMachine', function() {
       machineId: 'machine_1',
     })
     .expect(200, done);
+  });
+
+  it('doesn\'t send notifications to unregistered machines but sends them to machines of the same token set of an unregistered machine', function(done) {
+    var req1 = nock('https://android.googleapis.com/')
+    .post('/gcm/send')
+    .reply(200);
+
+    var req2 = nock('https://localhost:50005')
+    .post('/')
+    .reply(201);
+
+    request(mercurius.app)
+    .post('/notify')
+    .send({
+      token: token,
+      client: 'aClient',
+    })
+    .expect(200, function() {
+      assert(!req1.isDone(), 'Notification isn\'t sent do an unregistered machine');
+      assert(req2.isDone(), 'Notification is sent do a machine in the same token set of an unregistered machine');
+      nock.cleanAll();
+      done();
+    });
   });
 
   it('replies with the payload encoded in JSON on `getPayload` if there\'s a payload available', function(done) {
