@@ -10,12 +10,13 @@ const http        = require('http');
 program.version(packageJson.version);
 
 // Example usage:
-// ./client.js notify http://localhost:4000 a81123751fa9219ce873aa403c9d458dd32eb4cb991350324e004a06b9c87461 '{"title":"A nice title.","body":"A nice body."}'
+// ./client.js notify http://localhost:4000 a81123751fa9219ce873aa403c9d458dd32eb4cb991350324e004a06b9c87461 clientID '{"title":"A nice title.","body":"A nice body."}'
 program.command('notify [mercuriusURL] [token] [payload]')
        .description('send a notification')
-       .action(function(mercuriusURL, token, payload) {
+       .action(function(mercuriusURL, token, client, payload) {
   var payload_string = JSON.stringify({
     token: token,
+    client: client,
     payload: JSON.parse(payload),
     ttl: 200,
   });
