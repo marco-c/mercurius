@@ -2,18 +2,11 @@ var mercurius = require('../index.js');
 var request = require('supertest');
 var assert = require('assert');
 var nock = require('nock');
-var crypto = require('crypto');
-var urlBase64 = require('urlsafe-base64');
 var testUtils = require('./testUtils.js');
 var redis = require('../redis.js');
 var chai = require('chai');
 
 chai.should();
-
-var userCurve = crypto.createECDH('prime256v1');
-
-var userPublicKey = userCurve.generateKeys();
-var userPrivateKey = userCurve.getPrivateKey();
 
 describe('mercurius unregisterMachine', function() {
   var token;
@@ -30,7 +23,7 @@ describe('mercurius unregisterMachine', function() {
     return mercurius.ready
     .then(() => testUtils.register(mercurius.app, 'machine_1', 'https://android.googleapis.com/gcm/send/someSubscriptionID', ''))
     .then(gotToken => token = gotToken)
-    .then(() => testUtils.register(mercurius.app, 'machine_2', 'https://localhost:50005', urlBase64.encode(userPublicKey), token, true));
+    .then(() => testUtils.register(mercurius.app, 'machine_2', 'https://localhost:50005', null, token, true));
   });
 
   it('created the machines properly', function() {
@@ -68,11 +61,15 @@ describe('mercurius unregisterMachine', function() {
     .expect(404, done);
   });
 
-  it('replies with 404 on `getPayload` if there\'s no payload available', function(done) {
+  it('unregisterMachine with an unexisting token/machine doesn\'t affect `getPayload`', function(done) {
     request(mercurius.app)
     .get('/getPayload/' + token)
     .send()
-    .expect(404, done);
+    .expect(function(res) {
+      assert.equal(res.status, 200);
+      assert.equal(res.text, '"hello"');
+    })
+    .end(done);
   });
 
   it('successfully unregisters a GCM endpoint', function(done) {
@@ -103,6 +100,7 @@ describe('mercurius unregisterMachine', function() {
     .send({
       token: token,
       client: 'aClient',
+      payload: 'hello',
     })
     .expect(200, function() {
       assert(!req1.isDone(), 'Notification isn\'t sent do an unregistered machine');
