@@ -39,6 +39,7 @@ describe('mercurius updateRegistration', function() {
       .post('/notify')
       .send({
         token: token,
+        payload: 'hello',
       })
       .expect(200, done);
     });

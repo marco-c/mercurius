@@ -2,14 +2,7 @@ var mercurius = require('../index.js');
 var request = require('supertest');
 var assert = require('assert');
 var nock = require('nock');
-var crypto = require('crypto');
-var urlBase64 = require('urlsafe-base64');
 var testUtils = require('./testUtils.js');
-
-var userCurve = crypto.createECDH('prime256v1');
-
-var userPublicKey = userCurve.generateKeys();
-var userPrivateKey = userCurve.getPrivateKey();
 
 describe('mercurius getPayload', function() {
   var gcmToken, webPushToken;
@@ -18,7 +11,7 @@ describe('mercurius getPayload', function() {
     return mercurius.ready
     .then(() => testUtils.register(mercurius.app, 'machineX', 'https://android.googleapis.com/gcm/send/someSubscriptionID', ''))
     .then(token => gcmToken = token)
-    .then(() => testUtils.register(mercurius.app, 'machineZ', 'https://localhost:50005', urlBase64.encode(userPublicKey)))
+    .then(() => testUtils.register(mercurius.app, 'machineZ', 'https://localhost:50005'))
     .then(token => webPushToken = token);
   });
 
