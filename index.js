@@ -286,7 +286,8 @@ app.post('/updateMeta', function(req, res) {
 app.post('/notify', function(req, res) {
   var token = req.body.token;
 
-  if (!req.body.payload) {
+  if (!req.body.payload ||
+      !req.body.client) {
     res.sendStatus(500);
     return;
   }

@@ -31,6 +31,7 @@ describe('mercurius getPayload', function() {
     .post('/notify')
     .send({
       token: gcmToken,
+      client: 'aClient',
       payload: 'hello',
     })
     .expect(200, done);
@@ -67,6 +68,7 @@ describe('mercurius getPayload', function() {
     .post('/notify')
     .send({
       token: webPushToken,
+      client: 'aClient',
       payload: 'hello',
     })
     .expect(200, done);
