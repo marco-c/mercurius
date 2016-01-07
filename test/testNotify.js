@@ -25,6 +25,7 @@ describe('mercurius notify', function() {
     .send({
       token: 'token_inesistente',
       client: 'test',
+      payload: 'hello',
     })
     .expect(404, done);
   });
@@ -39,6 +40,7 @@ describe('mercurius notify', function() {
     .send({
       token: token,
       client: 'test',
+      payload: 'hello',
     })
     .expect(500, done);
   });
@@ -53,22 +55,18 @@ describe('mercurius notify', function() {
     .send({
       token: token,
       client: 'test',
+      payload: 'hello',
     })
     .expect(200, done);
   });
 
-  it('sends a notification with payload to a registered user', function(done) {
-    nock('https://localhost:50005')
-    .post('/')
-    .reply(201);
-
+  it('sends a notification without payload to a registered user', function(done) {
     request(mercurius.app)
     .post('/notify')
     .send({
       token: token,
       client: 'test',
-      payload: 'hello',
     })
-    .expect(200, done);
+    .expect(500, done);
   });
 });

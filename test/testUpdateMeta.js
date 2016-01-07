@@ -9,7 +9,7 @@ describe('mercurius updateMeta', function() {
 
   before(function() {
     return mercurius.ready
-    .then(() => testUtils.register(mercurius.app, 'machineX', 'https://localhost:50005', 'key'))
+    .then(() => testUtils.register(mercurius.app, 'machineX', 'https://localhost:50005'))
     .then(gotToken => token = gotToken);
   });
 
@@ -31,6 +31,7 @@ describe('mercurius updateMeta', function() {
       .post('/notify')
       .send({
         token: token,
+        payload: 'hello',
       })
       .expect(200, done);
     });

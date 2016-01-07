@@ -47,6 +47,7 @@ describe('mercurius unregister', function() {
     .post('/notify')
     .send({
       token: token,
+      payload: 'hello',
     })
     .expect(404, done);
   });

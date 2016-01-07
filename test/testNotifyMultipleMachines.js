@@ -11,9 +11,9 @@ describe('mercurius (multiple-machines-)notify', function() {
 
   before(function() {
     return mercurius.ready
-    .then(() => testUtils.register(mercurius.app, 'machineZ', 'https://localhost:50005', 'key'))
+    .then(() => testUtils.register(mercurius.app, 'machineZ', 'https://localhost:50005'))
     .then(gotToken => token = gotToken)
-    .then(() => testUtils.register(mercurius.app, 'machineZ2', 'https://localhost:50006', 'key', token));
+    .then(() => testUtils.register(mercurius.app, 'machineZ2', 'https://localhost:50006', null, token));
   });
 
   it('sends notifications to multiple machines of a registered user', function(done) {
@@ -29,6 +29,7 @@ describe('mercurius (multiple-machines-)notify', function() {
     .post('/notify')
     .send({
       token: token,
+      payload: 'hello',
     })
     .expect(200, done);
   });
@@ -46,6 +47,7 @@ describe('mercurius (multiple-machines-)notify', function() {
     .post('/notify')
     .send({
       token: token,
+      payload: 'hello',
     })
     .expect(500, done);
   });

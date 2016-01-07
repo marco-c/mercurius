@@ -9,7 +9,7 @@ describe('mercurius clients support', function() {
 
   before(function() {
     return mercurius.ready
-    .then(() => testUtils.register(mercurius.app, 'machineXZ', 'https://localhost:50005', ''))
+    .then(() => testUtils.register(mercurius.app, 'machineXZ', 'https://localhost:50005'))
     .then(gotToken => token = gotToken);
   });
 
@@ -22,7 +22,8 @@ describe('mercurius clients support', function() {
     .post('/notify')
     .send({
       token: token,
-      client: 'clientXZ'
+      client: 'clientXZ',
+      payload: 'hello',
     })
     .expect(200, done);
   });
@@ -47,6 +48,7 @@ describe('mercurius clients support', function() {
       token: token,
       machineId: 'machineXZ',
       client: 'clientXZ',
+      payload: 'hello',
     })
     .expect(function(res) {
       assert.equal(res.status, 200);
@@ -66,7 +68,8 @@ describe('mercurius clients support', function() {
     .post('/notify')
     .send({
       token: token,
-      client: 'clientXZ'
+      client: 'clientXZ',
+      payload: 'hello',
     })
     .expect(200, function() {
       assert(!req.isDone(), 'Notification isn\'t sent do a disabled client');
@@ -101,7 +104,8 @@ describe('mercurius clients support', function() {
     .post('/notify')
     .send({
       token: token,
-      client: 'clientXZ'
+      client: 'clientXZ',
+      payload: 'hello',
     })
     .expect(200, done);
   });

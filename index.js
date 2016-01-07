@@ -286,6 +286,11 @@ app.post('/updateMeta', function(req, res) {
 app.post('/notify', function(req, res) {
   var token = req.body.token;
 
+  if (!req.body.payload) {
+    res.sendStatus(500);
+    return;
+  }
+
   redis.smembers(token)
   .then(function(machines) {
     var client = req.body.client;

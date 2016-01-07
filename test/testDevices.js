@@ -8,9 +8,9 @@ describe('mercurius devices', function() {
 
   before(function() {
     return mercurius.ready
-    .then(() => testUtils.register(mercurius.app, 'machine1', 'https://localhost:50005', ''))
+    .then(() => testUtils.register(mercurius.app, 'machine1', 'https://localhost:50005'))
     .then(gotToken => token = gotToken)
-    .then(() => testUtils.register(mercurius.app, 'machine2', 'https://localhost:50006', '', token));
+    .then(() => testUtils.register(mercurius.app, 'machine2', 'https://localhost:50006', null, token));
   });
 
   it('successfully returnes all machines assigned to a token', function(done) {
