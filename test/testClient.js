@@ -1,8 +1,11 @@
 var mercurius = require('../index.js');
 var request = require('supertest');
-var assert = require('assert');
+var chai = require('chai');
 var nock = require('nock');
 var testUtils = require('./testUtils.js');
+
+chai.should();
+var assert = chai.assert;
 
 describe('mercurius clients support', function() {
   var token;
@@ -32,11 +35,11 @@ describe('mercurius clients support', function() {
     request(mercurius.app)
     .get('/devices/' + token)
     .send()
+    .expect(200)
     .expect(function(res) {
-      assert.equal(res.status, 200);
-      assert.equal(res.body.clients.length, 1);
-      assert.equal(res.body.clients.indexOf('clientXZ'), 0);
-      assert.equal(res.body.machines.machineXZ.clients.clientXZ, '1');
+      res.body.clients.length.should.equal(1);
+      res.body.clients.indexOf('clientXZ').should.equal(0);
+      res.body.machines.machineXZ.clients.clientXZ.should.equal('1');
     })
     .end(done);
   });
@@ -50,11 +53,11 @@ describe('mercurius clients support', function() {
       client: 'clientXZ',
       payload: 'hello',
     })
+    .expect(200)
     .expect(function(res) {
-      assert.equal(res.status, 200);
-      assert.equal(res.body.clients.length, 1);
-      assert.equal(res.body.clients.indexOf('clientXZ'), 0);
-      assert.equal(res.body.machines.machineXZ.clients.clientXZ, '0');
+      res.body.clients.length.should.equal(1);
+      res.body.clients.indexOf('clientXZ').should.equal(0);
+      res.body.machines.machineXZ.clients.clientXZ.should.equal('0');
     })
     .end(done);
   });
@@ -86,11 +89,11 @@ describe('mercurius clients support', function() {
       machineId: 'machineXZ',
       client: 'clientXZ',
     })
+    .expect(200)
     .expect(function(res) {
-      assert.equal(res.status, 200);
-      assert.equal(res.body.clients.length, 1);
-      assert.equal(res.body.clients.indexOf('clientXZ'), 0);
-      assert.equal(res.body.machines.machineXZ.clients.clientXZ, '1');
+      res.body.clients.length.should.equal(1);
+      res.body.clients.indexOf('clientXZ').should.equal(0);
+      res.body.machines.machineXZ.clients.clientXZ.should.equal('1');
     })
     .end(done);
   });

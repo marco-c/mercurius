@@ -1,6 +1,5 @@
 var mercurius = require('../index.js');
 var request = require('supertest');
-var assert = require('assert');
 var nock = require('nock');
 var testUtils = require('./testUtils.js');
 
@@ -41,10 +40,8 @@ describe('mercurius getPayload', function() {
     request(mercurius.app)
     .get('/getPayload/' + gcmToken)
     .send()
-    .expect(function(res) {
-      assert.equal(res.status, 200);
-      assert.equal(res.text, '"hello"');
-    })
+    .expect(200)
+    .expect('"hello"')
     .end(done);
   });
 
@@ -52,10 +49,8 @@ describe('mercurius getPayload', function() {
     request(mercurius.app)
     .get('/getPayload/' + gcmToken)
     .send()
-    .expect(function(res) {
-      assert.equal(res.status, 200);
-      assert.equal(res.text, '"hello"');
-    })
+    .expect(200)
+    .expect('"hello"')
     .end(done);
   });
 

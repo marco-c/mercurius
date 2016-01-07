@@ -1,12 +1,12 @@
 var mercurius = require('../index.js');
 var request = require('supertest');
-var assert = require('assert');
 var nock = require('nock');
 var testUtils = require('./testUtils.js');
 var redis = require('../redis.js');
 var chai = require('chai');
 
 chai.should();
+var assert = require('chai').assert;
 
 describe('mercurius unregisterMachine', function() {
   var token;
@@ -65,10 +65,8 @@ describe('mercurius unregisterMachine', function() {
     request(mercurius.app)
     .get('/getPayload/' + token)
     .send()
-    .expect(function(res) {
-      assert.equal(res.status, 200);
-      assert.equal(res.text, '"hello"');
-    })
+    .expect(200)
+    .expect('"hello"')
     .end(done);
   });
 
@@ -114,12 +112,11 @@ describe('mercurius unregisterMachine', function() {
     request(mercurius.app)
     .get('/getPayload/' + token)
     .send()
-    .expect(function(res) {
-      assert.equal(res.status, 200);
-      var obj = JSON.parse(res.text);
-      assert.equal(obj.title, 'unregister');
-      assert.equal(obj.body, 'called from unregisterMachine');
-    })
+    .expect(200)
+    .expect(JSON.stringify({
+      title: 'unregister',
+      body: 'called from unregisterMachine'
+    }))
     .end(done);
   });
 

@@ -1,7 +1,7 @@
 var mercurius = require('../index.js');
 var request = require('supertest');
-var assert = require('chai').assert;
 var crypto = require('crypto');
+var should = require('chai').should();
 var redis = require('../redis.js');
 
 describe('mercurius register', function() {
@@ -39,11 +39,11 @@ describe('mercurius register', function() {
       endpoint: 'https://localhost:50008',
       key: '',
     })
+    .expect(200)
     .expect(function(res) {
-      assert.equal(res.status, 200);
-      assert.isObject(res.body);
-      assert.isObject(res.body.machines);
-      assert.equal(res.body.token.length, 16);
+      res.body.should.be.an('object');
+      res.body.machines.should.be.an('object');
+      res.body.token.length.should.equal(16);
       token = res.body.token;
     })
     .end(done);
@@ -58,11 +58,11 @@ describe('mercurius register', function() {
       endpoint: 'endpoint',
       key: '',
     })
+    .expect(200)
     .expect(function(res) {
-      assert.equal(res.status, 200);
-      assert.equal(res.body.token, token);
-      assert.equal(res.body.machines.machine.endpoint, 'https://localhost:50008');
-      assert.equal(res.body.machines.machine2.endpoint, 'endpoint');
+      res.body.token.should.equal(token);
+      res.body.machines.machine.endpoint.should.equal('https://localhost:50008');
+      res.body.machines.machine2.endpoint.should.equal('endpoint');
     })
     .end(done);
   });
@@ -79,11 +79,11 @@ describe('mercurius register', function() {
         endpoint: 'endpoint2',
         key: '',
       })
+      .expect(200)
       .expect(function(res) {
-        assert.equal(res.status, 200);
-        assert.equal(res.body.token, token);
-        assert.equal(res.body.machines.machine2.endpoint, 'endpoint2');
-        assert.equal(Object.keys(res.body.machines).length, startlength);
+        res.body.token.should.equal(token);
+        res.body.machines.machine2.endpoint.should.equal('endpoint2');
+        Object.keys(res.body.machines).length.should.equal(startlength);
       })
       .end(done);
     });
