@@ -3,10 +3,7 @@ var request = require('supertest');
 var nock = require('nock');
 var testUtils = require('./testUtils.js');
 var redis = require('../redis.js');
-var chai = require('chai');
-
-chai.should();
-var assert = require('chai').assert;
+var chai = require('chai').should();
 
 describe('mercurius unregisterMachine', function() {
   var token;
@@ -101,8 +98,8 @@ describe('mercurius unregisterMachine', function() {
       payload: 'hello',
     })
     .expect(200, function() {
-      assert(!req1.isDone(), 'Notification isn\'t sent do an unregistered machine');
-      assert(req2.isDone(), 'Notification is sent do a machine in the same token set of an unregistered machine');
+      req1.isDone().should.equal(false, 'Notification isn\'t sent do an unregistered machine');
+      req2.isDone().should.equal(true, 'Notification is sent do a machine in the same token set of an unregistered machine');
       nock.cleanAll();
       done();
     });

@@ -1,11 +1,8 @@
 var mercurius = require('../index.js');
 var request = require('supertest');
-var chai = require('chai');
+var chai = require('chai').should();
 var nock = require('nock');
 var testUtils = require('./testUtils.js');
-
-chai.should();
-var assert = chai.assert;
 
 describe('mercurius clients support', function() {
   var token;
@@ -75,7 +72,7 @@ describe('mercurius clients support', function() {
       payload: 'hello',
     })
     .expect(200, function() {
-      assert(!req.isDone(), 'Notification isn\'t sent do a disabled client');
+      req.isDone().should.equal(false, 'Notification isn\'t sent do a disabled client');
       nock.cleanAll();
       done();
     });
