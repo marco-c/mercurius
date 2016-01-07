@@ -1,7 +1,9 @@
 var mercurius = require('../index.js');
 var request = require('supertest');
-var assert = require('chai').assert;
+var chai = require('chai');
 var testUtils = require('./testUtils.js');
+
+chai.should();
 
 describe('mercurius devices', function() {
   var token;
@@ -17,13 +19,13 @@ describe('mercurius devices', function() {
     request(mercurius.app)
     .get('/devices/' + token)
     .send()
+    .expect(200)
     .expect(function(res) {
-      assert.equal(res.status, 200);
-      assert.isObject(res.body);
-      assert.equal(res.body.token, token);
-      assert.isObject(res.body.machines);
-      assert.equal(res.body.machines.machine1.endpoint, 'https://localhost:50005');
-      assert.equal(res.body.machines.machine2.endpoint, 'https://localhost:50006');
+      res.body.should.be.an('object');
+      res.body.token.should.equal(token);
+      res.body.machines.should.be.an('object');
+      res.body.machines.machine1.endpoint.should.equal('https://localhost:50005');
+      res.body.machines.machine2.endpoint.should.equal('https://localhost:50006');
     })
     .end(done);
   });
