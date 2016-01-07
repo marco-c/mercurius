@@ -5,6 +5,8 @@ Generic Web Push server
 [![dependencies](https://david-dm.org/marco-c/mercurius.svg)](https://david-dm.org/marco-c/mercurius)
 [![devdependencies](https://david-dm.org/marco-c/mercurius/dev-status.svg)](https://david-dm.org/marco-c/mercurius#info=devDependencies)
 
+Check [![the post on Mozilla's hacks page](https://hacks.mozilla.org/2015/12/web-push-notifications-from-irssi/) to see a real live usecase.
+
 ## API
 
 ### POST /notify
@@ -24,6 +26,7 @@ Example:
 ```
 {
     "token": "aToken",
+	"client": "someClient",
     "payload": {
         "title": "IRSSI",
         "body": "a message"
