@@ -37,7 +37,7 @@ describe('mercurius clients support', function() {
     .send()
     .expect(200)
     .expect(function(res) {
-      res.body.clients.length.should.equal(1);
+      res.body.clients.should.have.length(1);
       res.body.clients.indexOf('clientXZ').should.equal(0);
       res.body.machines.machineXZ.clients.clientXZ.should.equal('1');
     })
@@ -55,7 +55,7 @@ describe('mercurius clients support', function() {
     })
     .expect(200)
     .expect(function(res) {
-      res.body.clients.length.should.equal(1);
+      res.body.clients.should.have.length(1);
       res.body.clients.indexOf('clientXZ').should.equal(0);
       res.body.machines.machineXZ.clients.clientXZ.should.equal('0');
     })
@@ -91,7 +91,7 @@ describe('mercurius clients support', function() {
     })
     .expect(200)
     .expect(function(res) {
-      res.body.clients.length.should.equal(1);
+      res.body.clients.should.have.length(1);
       res.body.clients.indexOf('clientXZ').should.equal(0);
       res.body.machines.machineXZ.clients.clientXZ.should.equal('1');
     })

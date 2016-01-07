@@ -43,7 +43,7 @@ describe('mercurius register', function() {
     .expect(function(res) {
       res.body.should.be.an('object');
       res.body.machines.should.be.an('object');
-      res.body.token.length.should.equal(16);
+      res.body.token.should.have.length(16);
       token = res.body.token;
     })
     .end(done);
@@ -83,7 +83,7 @@ describe('mercurius register', function() {
       .expect(function(res) {
         res.body.token.should.equal(token);
         res.body.machines.machine2.endpoint.should.equal('endpoint2');
-        Object.keys(res.body.machines).length.should.equal(startlength);
+        Object.keys(res.body.machines).should.have.length(startlength);
       })
       .end(done);
     });
