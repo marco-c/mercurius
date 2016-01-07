@@ -3,7 +3,9 @@ Cross-platform web push center. Site allows to proxy a POST request to a full fe
 
 Secure, as no data is stored except of generated token, machine id with an endpoint and connected client names.
 
-Check [![the post on Mozilla's hacks page](https://hacks.mozilla.org/2015/12/web-push-notifications-from-irssi/) to see a real live usecase.
+We're currently running a [![publicly available development server](https://mozcurius.herokuapp.com)] under Heroku.
+
+Check [![the post on Mozilla's hacks page](https://hacks.mozilla.org/2015/12/web-push-notifications-from-irssi/)] to see a real live usecase.
 
 [![Build Status](https://travis-ci.org/marco-c/mercurius.svg?branch=master)](https://travis-ci.org/marco-c/mercurius)
 [![dependencies](https://david-dm.org/marco-c/mercurius.svg)](https://david-dm.org/marco-c/mercurius)
