@@ -87,10 +87,7 @@ function register() {
           return subscription;
         }
 
-        return registration.pushManager.subscribe({ userVisibleOnly: true })
-        .then(function(newSubscription) {
-          return newSubscription;
-        });
+        return registration.pushManager.subscribe({ userVisibleOnly: true });
       });
     })
     .then(function(subscription) {
