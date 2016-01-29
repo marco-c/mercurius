@@ -40,7 +40,7 @@
     "body-parser": "^1.14.1",
     "bwip-js": "^0.15.1",
     "express": "^4.13.3",
-    "express-handlebars": "^2.0.1",
+    "express-handlebars": "^3.0.0",
     "localforage": "^1.3.0",
     "quagga": "^0.8.3",
     "redis": "^2.4.1",
