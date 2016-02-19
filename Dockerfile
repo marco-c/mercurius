@@ -17,4 +17,4 @@ CMD ./start.sh
 
 
 # docker build -t="mercurius" .
-# docker run --publish 4000:4000 -e REDISCLOUD_URL="redis://localhost:6379" mercurius
+# docker run --publish 4000:4000 -e REDISCLOUD_URL="redis://localhost:6379" -e GCM_API_KEY="" mercurius
