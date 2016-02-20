@@ -45,6 +45,6 @@ host (`redis://localhost:6379`)
 
 ## DOCKER
 
-1/ clone this repo
-2/ cd mercurius && docker build -t="mercurius" .
-3/ docker run --publish 4000:4000 -e REDISCLOUD_URL="redis://localhost:6379" -e GCM_API_KEY="" mercurius
+- clone this repo
+- cd mercurius && docker build -t="mercurius" .
+- docker run --publish 4000:4000 -e REDISCLOUD_URL="redis://localhost:6379" -e GCM_API_KEY="" mercurius
