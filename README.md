@@ -38,6 +38,17 @@ Example:
 }
 ```
 
+## VARIABLES
+
+Mandatory :
+
+- REDISCLOUD_URL (Ex. redis://localhost:6379)
+
+Optional 
+- GCM_API_KEY : Your Google API Key to send notification to Chrome.
+- DISABLE_SSL_REDIRECT : Disable the built-in SSL redirection.
+
+
 ## INSTALL
 
 Install Redis database and set `REDISCLOUD_URL` environment variable to its 
@@ -49,5 +60,5 @@ host (`redis://localhost:6379`)
 
 ```
 cd mercurius && docker build -t="mercurius" .
-docker run --publish 4000:4000 -e REDISCLOUD_URL="redis://localhost:6379" -e GCM_API_KEY="" mercurius
+docker run --publish 4000:4000 -e REDISCLOUD_URL="redis://localhost:6379" -e GCM_API_KEY="" -e DISABLE_SSL_REDIRECT="1" mercurius
 ```
