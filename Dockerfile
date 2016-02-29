@@ -6,9 +6,11 @@ RUN apt-get update && apt-get install -y redis-server
 # Install Mercurius
 RUN mkdir /src
 WORKDIR /src
-ADD . /src
+COPY package.json /src
 RUN npm install
 RUN npm run build
+
+COPY . /src
 
 EXPOSE 4000
 
