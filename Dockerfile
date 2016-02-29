@@ -11,6 +11,7 @@ RUN npm install
 RUN npm build
 
 COPY . /src
+RUN npm run build
 
 EXPOSE 4000
 
