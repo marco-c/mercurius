@@ -8,7 +8,7 @@ RUN mkdir /src
 WORKDIR /src
 COPY package.json /src
 RUN npm install
-RUN npm run build
+RUN npm build
 
 COPY . /src
 
